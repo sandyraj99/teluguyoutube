@@ -1,0 +1,439 @@
+<!doctype html>
+<html lang="te">
+<head>
+<meta charset="utf-8" />
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Noto+Sans+Telugu:wght@500;700;900&family=Ramabhadra&family=JetBrains+Mono:wght@500;700&display=block" rel="stylesheet" />
+<style>
+  :root {
+    --paper: #f3ebdd; --paper2: #eadfcb; --ink: #1b1714; --red: #d93a26; --turmeric: #f2b632; --leaf: #2f8f5b;
+    --amber: #e39a2f; --blue: #2d6fd6; --steel: #b9c1c7; --plum: #7a3b69; --muted: #6f6457;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { width: 1920px; height: 1080px; overflow: hidden; }
+  body { font-family: "Noto Sans Telugu", sans-serif; color: var(--ink); background: var(--paper); }
+  #stage { position: relative; width: 1920px; height: 1080px; overflow: hidden;
+    background:
+      radial-gradient(ellipse at 50% 40%, rgba(255,255,255,.55) 0%, rgba(255,255,255,0) 60%),
+      repeating-linear-gradient(0deg, rgba(27,23,20,.045) 0 1px, transparent 1px 48px),
+      repeating-linear-gradient(90deg, rgba(27,23,20,.045) 0 1px, transparent 1px 48px),
+      var(--paper); }
+  .grain { position: absolute; inset: -50%; z-index: 80; opacity: .10; mix-blend-mode: multiply; pointer-events: none;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='240' height='240'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.1  0 0 0 0 0.08  0 0 0 0 0.06  0 0 0 1 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>"); }
+  .edge { position: absolute; inset: 0; z-index: 79; pointer-events: none; box-shadow: inset 0 0 220px rgba(120,90,50,.28); }
+  .scene { position: absolute; inset: 0; opacity: 0; }
+  .abs { position: absolute; opacity: 0; will-change: transform, opacity; }
+  .card { background: #fffaf0; border: 4px solid var(--ink); border-radius: 22px; box-shadow: 10px 10px 0 var(--ink); }
+  .num { font-family: "Anton", sans-serif; letter-spacing: .5px; }
+  .disp { font-family: "Ramabhadra", sans-serif; }
+  .mono { font-family: "JetBrains Mono", "Noto Sans Telugu", monospace; font-weight: 700; letter-spacing: 2px; }
+  .chip { display: inline-block; padding: 6px 16px 3px; border: 3px solid var(--ink); border-radius: 999px; background: var(--turmeric); font-weight: 900; font-size: 24px; box-shadow: 4px 4px 0 var(--ink); }
+
+  /* brand */
+  #brand { left: 56px; top: 44px; display: flex; align-items: center; gap: 12px; z-index: 60; }
+  #brand .m { width: 48px; height: 48px; border: 3px solid var(--ink); border-radius: 12px; background: var(--turmeric); display: grid; place-items: center; font-family: "Ramabhadra"; font-size: 30px; padding-top: 5px; box-shadow: 3px 3px 0 var(--ink); }
+  #brand .n { font-family: "Ramabhadra"; font-size: 30px; }
+  #brand .e { font-family: "JetBrains Mono"; font-size: 15px; font-weight: 700; color: var(--muted); letter-spacing: 2px; margin-left: 4px; }
+
+  /* subtitles */
+  #sub { left: 160px; width: 1600px; bottom: 50px; text-align: center; z-index: 70; }
+  #sub span { font-weight: 700; font-size: 42px; line-height: 1.6; color: #fff6e6; background: var(--ink); padding: 6px 24px 2px; border-radius: 14px; box-decoration-break: clone; -webkit-box-decoration-break: clone; }
+  #progress { left: 0; top: 0; height: 8px; background: var(--red); z-index: 75; opacity: 1; }
+  #srcline { right: 56px; top: 54px; z-index: 60; font-size: 17px; color: var(--muted); }
+
+  /* wipes */
+  .wipe { position: absolute; top: -10%; height: 120%; width: 2400px; z-index: 65; transform: translateX(-2600px) skewX(-12deg); }
+  #wipeA { background: var(--turmeric); border-right: 6px solid var(--ink); }
+  #wipeB { background: var(--red); border-right: 6px solid var(--ink); }
+
+  /* hook */
+  #bandi { left: 860px; top: 190px; width: 960px; transform-origin: 50% 100%; }
+  #queue { left: 120px; top: 520px; width: 760px; height: 420px; }
+  #clock { left: 120px; top: 150px; }
+  #clock .chip { font-size: 30px; background: #fffaf0; }
+  #h10 { left: 118px; top: 230px; }
+  #h10 .num { font-size: 250px; line-height: .95; color: var(--red); -webkit-text-stroke: 4px var(--ink); text-shadow: 10px 10px 0 var(--ink); }
+  #h10 .disp { font-size: 58px; margin-top: 6px; }
+  #hq { left: 118px; top: 150px; width: 800px; }
+  #hq .disp { font-size: 100px; line-height: 1.12; }
+  #hq .hl { background: var(--turmeric); padding: 0 14px; border-radius: 10px; box-shadow: 6px 6px 0 var(--ink); border: 4px solid var(--ink); display: inline-block; }
+
+  /* sales */
+  #salesL { left: 130px; top: 230px; }
+  #salesL .k { font-size: 34px; font-weight: 900; color: var(--muted); }
+  #salesL .big { font-size: 270px; line-height: .95; }
+  #salesL .u { font-family: "Ramabhadra"; font-size: 64px; }
+  #salesEq { left: 130px; top: 640px; padding: 22px 34px; }
+  #salesEq .num { font-size: 92px; }
+  #salesEq .g { color: var(--leaf); }
+  #grid { left: 930px; top: 170px; width: 860px; height: 700px; padding: 30px; }
+  #grid .gh { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+  #grid .gh .t { font-family: "Ramabhadra"; font-size: 36px; }
+  #dots { display: grid; grid-template-columns: repeat(25, 1fr); gap: 7px; }
+  #dots i { display: block; height: 22px; border-radius: 11px; background: rgba(27,23,20,.08); }
+  #dots i.on { background: var(--amber); box-shadow: inset 0 -4px 0 rgba(27,23,20,.25); }
+
+  /* ledger chapter */
+  #spot { left: 120px; top: 150px; width: 880px; height: 760px; }
+  .item { position: absolute; inset: 0; opacity: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+  .item .disc { width: 460px; height: 460px; border-radius: 50%; border: 4px solid var(--ink); box-shadow: 12px 12px 0 var(--ink); display: grid; place-items: center; }
+  .item .disc svg { width: 340px; height: 340px; overflow: visible; }
+  .item .name { font-family: "Ramabhadra"; font-size: 64px; margin-top: 34px; }
+  .item .qty { margin-top: 6px; font-family: "Anton"; font-size: 54px; }
+  .item .qty .tq { font-family: "Noto Sans Telugu"; font-weight: 900; font-size: 42px; letter-spacing: 0; }
+  .item .qty b { color: var(--red); font-weight: normal; }
+  #receipt { left: 1120px; top: 112px; width: 640px; padding: 26px 32px 22px; }
+  #receipt .h { display: flex; justify-content: space-between; align-items: baseline; padding-bottom: 12px; border-bottom: 3px dashed rgba(27,23,20,.35); }
+  #receipt .h .t { font-family: "Ramabhadra"; font-size: 42px; }
+  .row { display: grid; grid-template-columns: 54px 1fr auto; gap: 14px; align-items: center; padding: 9px 10px; border-radius: 14px; opacity: 0; }
+  .row svg { width: 50px; height: 50px; overflow: visible; }
+  .row .l { font-weight: 900; font-size: 30px; line-height: 1.15; }
+  .row .l small { display: block; font-family: "JetBrains Mono"; font-weight: 700; font-size: 15px; color: var(--muted); letter-spacing: 1px; }
+  .row .r { font-family: "Anton"; font-size: 44px; }
+  .row.hot { background: var(--red); color: #fff6e6; border: 3px solid var(--ink); }
+  .row.hot small { color: #ffe1c2; }
+  #receipt .tot { display: flex; justify-content: space-between; align-items: center; margin-top: 10px; padding-top: 14px; border-top: 4px solid var(--ink); }
+  #receipt .tot .l { font-family: "Ramabhadra"; font-size: 40px; }
+  #receipt .tot .r { font-family: "Anton"; font-size: 66px; color: var(--red); display: inline-block; }
+  #twist { left: 120px; top: 150px; width: 880px; text-align: center; z-index: 6; }
+  #twist .disp { font-size: 74px; }
+  #twist .x { position: relative; display: inline-block; }
+  #twist .x:after { content: ""; position: absolute; left: -6px; right: -6px; top: 52%; height: 10px; background: var(--red); border-radius: 6px; transform: scaleX(var(--s, 0)); transform-origin: left; }
+  #gasPrice { left: 160px; top: 180px; padding: 18px 28px; transform-origin: left top; z-index: 7; }
+  #gasPrice .mono { font-size: 17px; color: var(--blue); }
+  #gasPrice .num { font-size: 104px; line-height: 1; }
+  #gasPrice .s { font-size: 22px; font-weight: 700; color: var(--muted); }
+  #gasDays { left: 140px; top: 690px; width: 840px; display: flex; align-items: center; gap: 16px; z-index: 7; }
+  .day { width: 118px; height: 118px; border: 4px solid var(--ink); border-radius: 16px; background: #fffaf0; box-shadow: 5px 5px 0 var(--ink); display: flex; flex-direction: column; align-items: center; justify-content: center; font-weight: 900; font-size: 22px; }
+  .day svg { width: 46px; height: 54px; }
+  #gasDays .res { margin-left: 12px; font-family: "Anton"; font-size: 84px; color: var(--blue); white-space: nowrap; }
+  #gasDays .res small { font-family: "Noto Sans Telugu"; font-weight: 900; font-size: 30px; color: var(--ink); }
+
+  /* profit */
+  #eq { left: 0; width: 1920px; top: 200px; text-align: center; }
+  #eq .num { font-size: 150px; }
+  #eq .m { color: var(--red); }
+  #res { left: 0; width: 1920px; top: 430px; text-align: center; }
+  #res .box { display: inline-block; padding: 10px 60px 20px; background: var(--leaf); color: #fff6e6; }
+  #res .num { font-size: 260px; line-height: 1.05; -webkit-text-stroke: 3px var(--ink); }
+  #res .lab { margin-top: 18px; font-family: "Ramabhadra"; font-size: 56px; }
+
+  /* coin */
+  #donut { left: 150px; top: 150px; width: 760px; height: 760px; }
+  #legend { left: 1000px; top: 170px; width: 780px; }
+  #legend .t { font-family: "Ramabhadra"; font-size: 60px; margin-bottom: 22px; }
+  .lg { display: grid; grid-template-columns: 34px 1fr auto; gap: 18px; align-items: center; padding: 7px 0; font-weight: 900; font-size: 32px; opacity: 0; }
+  .lg i { width: 30px; height: 30px; border: 3px solid var(--ink); border-radius: 8px; }
+  .lg .v { font-family: "Anton"; font-size: 40px; }
+  .lg.own { margin-top: 10px; padding: 10px 18px; background: var(--turmeric); border: 4px solid var(--ink); border-radius: 16px; box-shadow: 6px 6px 0 var(--ink); font-size: 38px; }
+  .lg.own .v { font-size: 64px; }
+
+  /* close */
+  #cal { left: 130px; top: 170px; width: 760px; padding: 28px; }
+  #cal .ch { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 18px; }
+  #cal .ch .t { font-family: "Ramabhadra"; font-size: 40px; }
+  #days { display: grid; grid-template-columns: repeat(6, 1fr); gap: 12px; }
+  #days div { height: 82px; border: 3px solid var(--ink); border-radius: 12px; display: grid; place-items: center; font-family: "Anton"; font-size: 30px; background: #fffaf0; }
+  #days div.on { background: var(--turmeric); }
+  #days div.off { background: repeating-linear-gradient(45deg, rgba(27,23,20,.12) 0 6px, transparent 6px 12px); color: var(--muted); }
+  #monthR { left: 990px; top: 220px; }
+  #monthR .k { font-size: 36px; font-weight: 900; color: var(--muted); }
+  #monthR .num { font-size: 210px; line-height: 1; color: var(--leaf); -webkit-text-stroke: 3px var(--ink); text-shadow: 9px 9px 0 var(--ink); }
+  #monthR .n { font-size: 24px; font-weight: 700; color: var(--muted); margin-top: 12px; }
+  #cta { left: 990px; top: 640px; display: flex; align-items: center; gap: 22px; padding: 24px 34px; background: var(--turmeric); }
+  #cta svg { width: 64px; height: 64px; }
+  #cta .disp { font-size: 50px; line-height: 1.2; }
+
+  #end { inset: 0; z-index: 72; background: var(--ink); display: grid; place-items: center; text-align: center; color: #fff6e6; }
+  #end .m { width: 150px; height: 150px; margin: 0 auto 28px; border: 5px solid #fff6e6; border-radius: 36px; background: var(--turmeric); color: var(--ink); display: grid; place-items: center; font-family: "Ramabhadra"; font-size: 96px; padding-top: 12px; box-shadow: 10px 10px 0 var(--red); }
+  #end .n { font-family: "Ramabhadra"; font-size: 104px; }
+  #end .s { font-size: 34px; font-weight: 700; color: #cbbfa9; margin-top: 6px; }
+</style>
+</head>
+<body>
+<div id="stage">
+  <div id="brand" class="abs"><div class="m">అ</div><div class="n">అసలు లెక్క</div><div class="e">EP 01</div></div>
+  <div id="srcline" class="abs mono"></div>
+
+  <!-- HOOK -->
+  <div class="scene" id="scHook">
+    <div id="clock" class="abs"><span class="chip">● హైదరాబాద్ · సాయంత్రం 5:00</span></div>
+    <div id="h10" class="abs"><div class="num">₹10</div><div class="disp">ఒక్క మిర్చి బజ్జీ</div></div>
+    <div id="hq" class="abs"><div class="disp">ఓనర్‌కి<br /><span class="hl">మిగిలేది</span> ఎంత?</div></div>
+    <svg id="queue" class="abs" viewBox="0 0 760 420"></svg>
+    <svg id="bandi" class="abs" viewBox="0 0 800 640"></svg>
+  </div>
+
+  <!-- SALES -->
+  <div class="scene" id="scSales">
+    <div id="salesL" class="abs"><div class="k">ఒక బిజీ బండి · రోజుకి</div><div class="big num"><span id="salesN">0</span></div><div class="u">బజ్జీలు</div></div>
+    <div id="salesEq" class="abs card"><span class="num">× ₹10 = <span class="g">₹<span id="salesR">0</span></span></span></div>
+    <div id="grid" class="abs card"><div class="gh"><div class="t">ఒక్కో చుక్క = ఒక్క బజ్జీ</div><span class="chip">అంచనా</span></div><div id="dots"></div></div>
+  </div>
+
+  <!-- LEDGER -->
+  <div class="scene" id="scLedger">
+    <div id="spot" class="abs"></div>
+    <div id="twist" class="abs"><div class="disp"><span class="x">పిండి</span> కాదు!</div></div>
+    <div id="gasPrice" class="abs card"><div class="mono">COMMERCIAL LPG · 19 KG</div><div class="num">₹3,081</div><div class="s">ఒక్క సిలిండర్ · హైదరాబాద్</div></div>
+    <div id="gasDays" class="abs"></div>
+    <div id="receipt" class="abs card">
+      <div class="h"><div class="t">రోజు ఖర్చు</div><span class="chip" style="font-size:20px">అంచనా</span></div>
+      <div id="rows"></div>
+      <div class="tot"><div class="l">మొత్తం</div><div class="r">₹<span id="tot">0</span></div></div>
+    </div>
+  </div>
+
+  <!-- PROFIT -->
+  <div class="scene" id="scProfit">
+    <div id="eq" class="abs"><span class="num">₹5,000</span> <span class="num m">− ₹3,740</span></div>
+    <div id="res" class="abs"><div class="box card"><div class="num">₹<span id="profN">0</span></div></div><div class="lab">ఓనర్‌కి రోజుకి మిగిలేది</div></div>
+  </div>
+
+  <!-- COIN -->
+  <div class="scene" id="scCoin">
+    <svg id="donut" class="abs" viewBox="-380 -380 760 760"></svg>
+    <div id="legend" class="abs"><div class="t">మీ <span class="num" style="color:#d93a26">₹10</span> ఎక్కడికి వెళ్తుంది?</div><div id="lgs"></div></div>
+  </div>
+
+  <!-- CLOSE -->
+  <div class="scene" id="scClose">
+    <div id="cal" class="abs card"><div class="ch"><div class="t">ఒక నెల</div><span class="chip" style="font-size:20px">26 పని రోజులు</span></div><div id="days"></div></div>
+    <div id="monthR" class="abs"><div class="k">నెలకి ఓనర్ లాభం</div><div class="num">≈ ₹<span id="monN">0</span></div><div class="n">₹1,260 × 26 − స్థలం ఖర్చు ₹3,000 · అంచనా</div></div>
+    <div id="cta" class="abs card">
+      <svg viewBox="0 0 24 24" fill="#fffaf0" stroke="#1b1714" stroke-width="2" stroke-linejoin="round"><path d="M4 4h16a1 1 0 0 1 1 1v11a1 1 0 0 1-1 1H9l-5 4v-4H4a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1Z"/><circle cx="8.5" cy="10.5" r="1.2" fill="#1b1714"/><circle cx="12" cy="10.5" r="1.2" fill="#1b1714"/><circle cx="15.5" cy="10.5" r="1.2" fill="#1b1714"/></svg>
+      <div class="disp">మీ ఊర్లో మిర్చి బజ్జీ ఎంత?</div>
+    </div>
+  </div>
+
+  <div id="end" class="abs"><div><div class="m">అ</div><div class="n">అసలు లెక్క</div><div class="s">ప్రతి బిజినెస్ వెనుక అసలు నంబర్లు</div></div></div>
+
+  <div class="wipe" id="wipeA"></div><div class="wipe" id="wipeB"></div>
+  <div id="sub" class="abs"><span id="subtext"></span></div>
+  <div id="progress" class="abs"></div>
+  <div class="edge"></div><div class="grain" id="grain"></div>
+</div>
+
+<script>
+const $ = (id) => document.getElementById(id);
+const clamp = (v, a = 0, b = 1) => Math.min(b, Math.max(a, v));
+const eo = (x) => 1 - Math.pow(1 - clamp(x), 3);
+const eio = (x) => { x = clamp(x); return x < .5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2; };
+const bo = (x) => { x = clamp(x); const c1 = 1.9, c3 = c1 + 1; return 1 + c3 * Math.pow(x - 1, 3) + c1 * Math.pow(x - 1, 2); };
+const el = (x) => { x = clamp(x); return x === 0 || x === 1 ? x : Math.pow(2, -10 * x) * Math.sin((x * 10 - .75) * (2 * Math.PI / 3)) + 1; };
+const P = (t, s, d) => clamp((t - s) / d);
+const fmt = (n) => Math.round(n).toLocaleString("en-IN");
+const tf = (e, o, x = 0, y = 0, s = 1, r = 0) => { e.style.opacity = o; e.style.transform = `translate(${x}px,${y}px) scale(${s}) rotate(${r}deg)`; };
+const INK = "#1b1714";
+
+/* ---------- illustrations ---------- */
+const BAJJI = (x, y, r, s = 1) => `<g transform="translate(${x},${y}) rotate(${r}) scale(${s})"><path d="M-40 0 C-40 -14 -20 -17 0 -16 C24 -15 38 -10 40 -2 C41 8 22 14 0 14 C-22 14 -40 12 -40 0Z" fill="#d98e2b" stroke="${INK}" stroke-width="3.5"/><path d="M40 -3 C48 -6 52 -12 50 -18" fill="none" stroke="#2f8f5b" stroke-width="5" stroke-linecap="round"/><circle cx="-18" cy="-4" r="2.4" fill="#a8641c"/><circle cx="2" cy="3" r="2.4" fill="#a8641c"/><circle cx="18" cy="-6" r="2.4" fill="#a8641c"/></g>`;
+const SACK = `<g stroke="${INK}" stroke-width="7" stroke-linejoin="round"><path d="M70 90 C40 150 30 250 60 320 L280 320 C310 250 300 150 270 90 Z" fill="#e8d3a3"/><path d="M80 90 L100 40 L240 40 L260 90 Z" fill="#d9bf86"/><path d="M110 70 Q170 95 230 70" fill="none"/><path d="M60 320 L280 320" /></g><text x="170" y="225" text-anchor="middle" font-family="Ramabhadra" font-size="46" fill="${INK}">శనగపిండి</text><path d="M100 30 Q170 -10 240 30 Q170 10 100 30Z" fill="#f6ead0" stroke="${INK}" stroke-width="5"/>`;
+const CHILLI = `<g stroke="${INK}" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"><path d="M60 300 C40 200 90 110 200 70 C240 56 262 70 258 92 C250 130 200 150 160 200 C120 250 110 290 80 318 C72 326 62 318 60 300Z" fill="#3fae5e"/><path d="M250 80 C266 60 292 52 306 30" fill="none"/><path d="M236 70 C250 58 268 62 276 74 C262 84 246 84 236 70Z" fill="#2a7d43"/></g><path d="M100 250 C120 200 150 160 200 120" fill="none" stroke="#8fdc8c" stroke-width="10" stroke-linecap="round" opacity=".7"/><g stroke="${INK}" stroke-width="6" stroke-linejoin="round" transform="translate(150 150) rotate(30)"><path d="M0 120 C-10 60 20 10 80 -10 C100 -16 112 -8 108 6 C100 30 70 44 50 70 C30 96 26 116 12 130 C6 136 0 132 0 120Z" fill="#53c06c"/></g>`;
+const OILCAN = `<g stroke="${INK}" stroke-width="7" stroke-linejoin="round"><rect x="60" y="70" width="220" height="260" rx="18" fill="#f2c14e"/><path d="M110 70 L110 30 L230 30 L230 70" fill="none"/><rect x="190" y="40" width="50" height="34" rx="6" fill="#c9cfd4"/><rect x="85" y="150" width="170" height="120" rx="12" fill="#fffaf0"/><path d="M170 175 C150 205 145 222 170 240 C195 222 190 205 170 175Z" fill="#e39a2f"/></g><text x="170" y="262" text-anchor="middle" font-family="Anton" font-size="22" fill="${INK}">15 L</text>`;
+const CYL = `<g stroke="${INK}" stroke-width="7" stroke-linejoin="round"><rect x="105" y="20" width="130" height="40" rx="12" fill="#c9cfd4"/><rect x="150" y="0" width="40" height="28" rx="6" fill="#8c959c"/><path d="M80 90 C80 60 110 50 170 50 C230 50 260 60 260 90 L260 330 C260 350 240 360 170 360 C100 360 80 350 80 330 Z" fill="#d93a26"/><path d="M80 150 L260 150 M80 290 L260 290" fill="none"/><rect x="100" y="360" width="140" height="22" rx="6" fill="#8c959c"/></g><rect x="112" y="190" width="116" height="62" rx="10" fill="#fffaf0" stroke="${INK}" stroke-width="5"/><text x="170" y="236" text-anchor="middle" font-family="Anton" font-size="38" fill="${INK}">19 KG</text><path d="M108 100 C108 84 120 78 140 76" stroke="#ff8c7a" stroke-width="10" fill="none" stroke-linecap="round"/>`;
+const FLAME = (s = 1) => `<g transform="scale(${s})"><rect x="-34" y="34" width="68" height="14" rx="5" fill="#8c959c" stroke="${INK}" stroke-width="4"/><path d="M0 -70 C30 -40 44 -10 30 18 C22 34 8 40 0 40 C-8 40 -22 34 -30 18 C-44 -10 -30 -40 0 -70Z" fill="#4a90ff" stroke="${INK}" stroke-width="5"/><path d="M0 -30 C14 -14 18 2 10 16 C6 22 -6 22 -10 16 C-18 2 -14 -14 0 -30Z" fill="#bfe0ff"/></g>`;
+const ONION = `<g stroke="${INK}" stroke-width="7" stroke-linejoin="round"><path d="M120 110 C40 140 30 260 110 300 C150 318 190 318 230 300 C310 260 300 140 220 110 C200 100 190 70 170 40 C150 70 140 100 120 110Z" fill="#a24a86"/><path d="M170 110 C140 160 140 250 170 310 M170 110 C200 160 200 250 170 310" fill="none" stroke-width="5"/><path d="M160 40 C150 20 156 6 170 0 C184 6 190 20 180 40" fill="#5aa84f"/></g><g stroke="${INK}" stroke-width="6"><ellipse cx="280" cy="330" rx="70" ry="16" fill="#fffaf0"/><ellipse cx="280" cy="314" rx="70" ry="16" fill="#fffaf0"/><ellipse cx="280" cy="298" rx="70" ry="16" fill="#fffaf0"/></g>`;
+const HELPER = `<g stroke="${INK}" stroke-width="7" stroke-linejoin="round"><path d="M60 340 C60 240 100 200 170 200 C240 200 280 240 280 340Z" fill="#2d6fd6"/><path d="M120 210 L120 340 M220 210 L220 340" stroke-width="5" fill="none"/><rect x="125" y="250" width="90" height="90" rx="8" fill="#fffaf0"/><circle cx="170" cy="130" r="62" fill="#b9774a"/><path d="M108 112 C110 70 140 56 170 56 C200 56 230 70 232 112 C210 96 130 96 108 112Z" fill="${INK}"/><path d="M100 100 L240 100 L250 116 L90 116Z" fill="#d93a26"/></g><circle cx="150" cy="136" r="6" fill="${INK}"/><circle cx="190" cy="136" r="6" fill="${INK}"/><path d="M152 162 Q170 176 188 162" stroke="${INK}" stroke-width="5" fill="none" stroke-linecap="round"/>`;
+const SMALL = { besan: SACK, chilli: CHILLI, oil: OILCAN, gas: CYL, onion: ONION, helper: HELPER };
+
+function bandiSVG() {
+  let stripes = ""; for (let i = 0; i < 10; i++) stripes += `<path d="M${100 + i * 60} 40 L${160 + i * 60} 40 L${168 + i * 64} 128 L${104 + i * 64} 128Z" fill="${i % 2 ? "#fff6e6" : "#d93a26"}"/>`;
+  let scallops = ""; for (let i = 0; i < 11; i++) scallops += `<path d="M${60 + i * 62} 126 a31 26 0 0 0 62 0Z" fill="${i % 2 ? "#fff6e6" : "#d93a26"}" stroke="${INK}" stroke-width="5"/>`;
+  let pile = ""; [[520, 362, -8], [585, 360, 6], [650, 364, -4], [552, 340, 10], [618, 338, -12], [585, 318, 4]].forEach(([x, y, r]) => (pile += BAJJI(x, y, r, .9)));
+  let fry = ""; [[250, 382, 8], [318, 386, -10], [378, 380, 14]].forEach(([x, y, r], i) => (fry += `<g class="fry" data-i="${i}">${BAJJI(x, y, r, .75)}</g>`));
+  return `
+  <defs><radialGradient id="glow"><stop offset="0" stop-color="#ffd76a" stop-opacity=".95"/><stop offset="1" stop-color="#ffd76a" stop-opacity="0"/></radialGradient></defs>
+  <circle id="bulbGlow" cx="400" cy="200" r="170" fill="url(#glow)" opacity="0"/>
+  <rect x="96" y="120" width="16" height="300" fill="#8c6a48" stroke="${INK}" stroke-width="5"/>
+  <rect x="688" y="120" width="16" height="300" fill="#8c6a48" stroke="${INK}" stroke-width="5"/>
+  <g stroke="${INK}" stroke-width="5">${stripes}</g>
+  <path d="M100 40 L700 40 L760 128 L40 128Z" fill="none" stroke="${INK}" stroke-width="6" stroke-linejoin="round"/>
+  ${scallops}
+  <line x1="400" y1="150" x2="400" y2="186" stroke="${INK}" stroke-width="5"/>
+  <circle id="bulb" cx="400" cy="200" r="18" fill="#fff6e6" stroke="${INK}" stroke-width="5"/>
+  <g id="steam" fill="none" stroke="${INK}" stroke-width="5" stroke-linecap="round" opacity=".55">
+    <path d="M260 330 C245 300 275 290 260 260"/><path d="M315 330 C300 296 330 286 315 250"/><path d="M370 330 C355 300 385 290 370 262"/>
+  </g>
+  <path d="M190 378 C210 452 390 452 410 378Z" fill="${INK}"/>
+  <ellipse cx="300" cy="380" rx="112" ry="16" fill="#e39a2f" stroke="${INK}" stroke-width="5"/>
+  ${fry}
+  <ellipse cx="585" cy="378" rx="115" ry="18" fill="#c9cfd4" stroke="${INK}" stroke-width="5"/>
+  ${pile}
+  <rect x="40" y="392" width="720" height="26" rx="6" fill="#d8c6a6" stroke="${INK}" stroke-width="5"/>
+  <rect x="62" y="418" width="676" height="128" rx="12" fill="#2f8f5b" stroke="${INK}" stroke-width="6"/>
+  <rect x="92" y="440" width="616" height="84" rx="10" fill="#267a4c" stroke="${INK}" stroke-width="4"/>
+  <text x="400" y="500" text-anchor="middle" font-family="Ramabhadra" font-size="50" fill="#fff6e6">మిర్చి బజ్జీ</text>
+  <g id="tag" transform="translate(640 128)"><line x1="0" y1="0" x2="0" y2="70" stroke="${INK}" stroke-width="4"/><g transform="translate(0 70)"><rect x="-62" y="0" width="124" height="74" rx="12" fill="#f2b632" stroke="${INK}" stroke-width="5"/><text x="0" y="56" text-anchor="middle" font-family="Anton" font-size="50" fill="${INK}">₹10</text></g></g>
+  <g stroke="${INK}" stroke-width="6"><circle id="w1" cx="180" cy="572" r="56" fill="${INK}"/><circle cx="180" cy="572" r="36" fill="#d8c6a6"/><circle cx="620" cy="572" r="56" fill="${INK}"/><circle cx="620" cy="572" r="36" fill="#d8c6a6"/></g>
+  <circle cx="180" cy="572" r="9" fill="${INK}"/><circle cx="620" cy="572" r="9" fill="${INK}"/>
+  <line x1="40" y1="628" x2="760" y2="628" stroke="${INK}" stroke-width="5" stroke-linecap="round" opacity=".35"/>`;
+}
+function personSVG(i, x, body, skin, hair, extra) {
+  return `<g class="pp" data-i="${i}" transform="translate(${x} 0)"><g>
+    <rect x="-36" y="300" width="28" height="110" rx="10" fill="#3a3a48" stroke="${INK}" stroke-width="5"/>
+    <rect x="8" y="300" width="28" height="110" rx="10" fill="#3a3a48" stroke="${INK}" stroke-width="5"/>
+    <path d="M-52 320 C-56 220 -40 172 0 172 C40 172 56 220 52 320Z" fill="${body}" stroke="${INK}" stroke-width="5"/>
+    ${extra || ""}
+    <circle cx="0" cy="124" r="40" fill="${skin}" stroke="${INK}" stroke-width="5"/>
+    <path d="M-40 118 C-40 86 -20 80 0 80 C26 80 42 92 40 120 C30 104 -20 100 -40 118Z" fill="${hair}" stroke="${INK}" stroke-width="5"/>
+    <circle cx="18" cy="126" r="4.5" fill="${INK}"/>
+  </g></g>`;
+}
+function queueSVG() {
+  const P = [[90, "#f2b632", "#c68a5c", INK, ""], [235, "#7a3b69", "#a56a45", INK, `<path d="M-52 230 L-70 300" stroke="${INK}" stroke-width="5"/><rect x="-80" y="290" width="34" height="40" rx="6" fill="#d93a26" stroke="${INK}" stroke-width="4"/>`],
+             [380, "#2d6fd6", "#d39a6a", "#3b2a20", `<rect x="-60" y="190" width="26" height="90" rx="8" fill="#1f4f9e" stroke="${INK}" stroke-width="4"/>`], [525, "#e8d3a3", "#b9774a", INK, ""], [670, "#2f8f5b", "#c68a5c", "#3b2a20", ""]];
+  return P.map((p, i) => personSVG(i, ...p)).join("");
+}
+function dayBoxes() {
+  let h = ""; for (let i = 0; i < 4; i++) h += `<div class="day" id="gd${i}"><svg viewBox="-40 -75 80 120">${FLAME(.8)}</svg>రోజు ${i + 1}</div>`;
+  return h + `<div class="res" id="gdr">= ₹770<small> / రోజుకి</small></div>`;
+}
+
+/* ---------- data ---------- */
+let TL, L = {}, DUR, C = {};
+const ITEMS = [
+  { k: "besan", name: "శనగపిండి", qty: "8 <span class='tq'>కిలోలు</span> × ₹90 = <b>₹720</b>", bg: "#f6e3b4", val: 720, sub: "8 KG × ₹90" },
+  { k: "chilli", name: "బజ్జీ మిర్చి", qty: "12.5 <span class='tq'>కిలోలు</span> × ₹60 = <b>₹750</b>", bg: "#d8ecd2", val: 750, sub: "12.5 KG × ₹60" },
+  { k: "oil", name: "నూనె", qty: "5 <span class='tq'>లీటర్లు</span> × ₹130 = <b>₹650</b>", bg: "#f8dcae", val: 650, sub: "5 L × ₹130" },
+  { k: "gas", name: "గ్యాస్", qty: "", bg: "#d6e4fb", val: 770, sub: "₹3,081 ÷ 4 రోజులు" },
+  { k: "onion", name: "ఉల్లి · మసాలా · ప్లేట్లు", qty: "<b>₹350</b>", bg: "#ecd5e6", val: 350, sub: "ONION · MASALA · PLATES" },
+  { k: "helper", name: "హెల్పర్ జీతం", qty: "<b>₹500</b> <span class='tq'>/ రోజుకి</span>", bg: "#d6e4fb", val: 500, sub: "HELPER / DAY" },
+];
+const COIN = [["పిండి", 1.44, "#f6d27a"], ["మిర్చి", 1.50, "#53c06c"], ["నూనె", 1.30, "#e39a2f"], ["గ్యాస్", 1.54, "#4a90ff"], ["ఇతర", 0.70, "#c9b99a"], ["హెల్పర్", 1.00, "#d93a26"], ["ఓనర్", 2.52, "#f2b632"]];
+
+window.setup = (timeline) => {
+  TL = timeline; DUR = TL.duration; TL.lines.forEach((l) => (L[l.id] = l));
+  const s = (id) => L[id].start, e = (id) => L[id].end;
+  // cue points inside sentences (seconds), measured from the voice take
+  C = {
+    bandiIn: .15, queue: 1.3, tag: s("s02") + .9, q: s("s03") + .15,
+    W1: s("s04") - .42, dots0: s("s04") + .6, dots1: e("s04") - .3, eq: s("s05") + .4, cash: s("s05") + 1.6,
+    W2: s("s06") - .36, receipt: s("s06") + .2, besan: s("s06") + 1.7, rBesan: e("s06") - 1.5,
+    chilli: s("s07") - .25, rChilli: e("s07") - 1.4, oil: s("s08") - .25, rOil: e("s08") - 1.3,
+    twist: s("s09") + .2, gas: 33.95, gasPrice: s("s10") + 2.5, days: 38.95, rGas: 39.6,
+    onion: s("s11") - .3, rOnion: 44.3, helper: 45.65, rHelper: 46.7, total: s("s12") + .2,
+    W3: s("s13") - .34, eq2: s("s13") + .05, res: 52.5,
+    W4: s("s14") - .34, donut: s("s14") + .1, owner: 56.3,
+    W5: s("s15") - .34, cal: s("s15") + .1, cta: 60.7, end: e("s15") + .35,
+  };
+  $("bandi").innerHTML = bandiSVG(); $("queue").innerHTML = queueSVG();
+  let d = ""; for (let i = 0; i < 500; i++) d += "<i></i>"; $("dots").innerHTML = d;
+  $("spot").innerHTML = ITEMS.map((it, i) => `<div class="item" id="it${i}"><div class="disc" style="background:${it.bg}"><svg viewBox="0 0 340 380">${SMALL[it.k]}</svg></div><div class="name">${it.name}</div><div class="qty">${it.qty}</div></div>`).join("")
+    + `<div class="item" id="itTot"><div class="disc" style="background:#fffaf0;width:520px;height:520px"><div style="text-align:center"><div class="disp" style="font-size:56px">మొత్తం ఖర్చు</div><div class="num" style="font-size:170px;color:#d93a26;line-height:1">₹3,740</div><div style="font-weight:900;font-size:28px;color:#6f6457;margin-top:18px">ఒక్క రోజుకి</div></div></div></div>`;
+  $("rows").innerHTML = ITEMS.map((it, i) => `<div class="row" id="rw${i}"><svg viewBox="0 0 340 380">${SMALL[it.k]}</svg><div class="l">${it.name}<small>${it.sub}</small></div><div class="r">₹${it.val}</div></div>`).join("");
+  $("gasDays").innerHTML = dayBoxes();
+  // donut
+  const R = 250, SW = 150, CIRC = 2 * Math.PI * R; let acc = 0, svg = `<circle r="${R + SW / 2 + 8}" fill="#fffaf0" stroke="${INK}" stroke-width="6"/>`;
+  COIN.forEach(([k, v, c], i) => {
+    const len = v / 10 * CIRC;
+    svg += `<g id="dg${i}" transform="rotate(${-90 + acc / CIRC * 360})"><circle r="${R}" fill="none" stroke="${c}" stroke-width="${SW}" stroke-dasharray="0 ${CIRC}" id="ds${i}" data-len="${len}"/></g>`;
+    acc += len;
+  });
+  svg += `<circle r="${R - SW / 2}" fill="#fffaf0" stroke="${INK}" stroke-width="6"/>`;
+  svg += `<text id="dTxt" y="30" text-anchor="middle" font-family="Anton" font-size="110" fill="${INK}">₹10</text><text id="dSub" y="80" text-anchor="middle" font-family="Noto Sans Telugu" font-weight="900" font-size="30" fill="#6f6457">ఒక్క బజ్జీ</text>`;
+  $("donut").innerHTML = svg;
+  $("lgs").innerHTML = COIN.map(([k, v, c], i) => `<div class="lg ${i === 6 ? "own" : ""}" id="lg${i}"><i style="background:${c}"></i><span>${i === 6 ? "ఓనర్ జేబులోకి" : k}</span><span class="v">₹${v.toFixed(2)}</span></div>`).join("");
+  let dd = ""; for (let i = 1; i <= 30; i++) dd += `<div id="cd${i}">${i}</div>`; $("days").innerHTML = dd;
+  return document.fonts.ready;
+};
+
+/* ---------- render ---------- */
+const sceneWin = (t, a, b) => (t >= a && t < b ? 1 : 0);
+window.render = (t) => {
+  const W = [C.W1, C.W2, C.W3, C.W4, C.W5];
+  // wipes: cover at W+0.3
+  let wa = -2600, wb = -2600;
+  W.forEach((w) => { const p = P(t, w, .75); if (p > 0 && p < 1) { wa = -2600 + eio(p) * 5000; wb = -2600 + eio(P(t, w + .07, .75)) * 5000; } });
+  $("wipeA").style.transform = `translateX(${wa}px) skewX(-12deg)`; $("wipeB").style.transform = `translateX(${wb}px) skewX(-12deg)`;
+  const cut = W.map((w) => w + .4);
+  const sc = [["scHook", 0, cut[0]], ["scSales", cut[0], cut[1]], ["scLedger", cut[1], cut[2]], ["scProfit", cut[2], cut[3]], ["scCoin", cut[3], cut[4]], ["scClose", cut[4], 999]];
+  sc.forEach(([id, a, b]) => { const e = $(id), on = sceneWin(t, a, b); e.style.opacity = on; const k = P(t, a, b - a); e.style.transform = `scale(${1 + .025 * k})`; });
+  $("grain").style.transform = `translate(${(Math.floor(t * 12) * 37) % 200 - 100}px, ${(Math.floor(t * 12) * 53) % 200 - 100}px)`;
+  $("progress").style.width = (t / DUR * 1920) + "px";
+  tf($("brand"), t < C.end ? eo(P(t, .1, .5)) : 0);
+
+  /* HOOK */
+  tf($("bandi"), eo(P(t, C.bandiIn, .3)), 0, (1 - bo(P(t, C.bandiIn, .7))) * 160, 1);
+  const bulb = P(t, .9, .2) > 0 ? (Math.floor(t * 30) % 7 === 0 && t < 1.4 ? .3 : 1) * eo(P(t, .9, .3)) : 0;
+  const bg = document.querySelector("#bulbGlow"); if (bg) { bg.setAttribute("opacity", bulb * (.85 + .1 * Math.sin(t * 6))); document.querySelector("#bulb").setAttribute("fill", bulb > .5 ? "#ffd76a" : "#fff6e6"); }
+  document.querySelectorAll("#steam path").forEach((p, i) => { const k = ((t * .6 + i * .33) % 1); p.setAttribute("transform", `translate(0 ${-k * 40})`); p.setAttribute("opacity", Math.sin(k * Math.PI)); });
+  document.querySelectorAll(".fry").forEach((f, i) => f.setAttribute("transform", `translate(0 ${Math.sin(t * 7 + i * 2) * 3})`));
+  const tg = document.querySelector("#tag"); if (tg) { const p = P(t, C.tag, 1.4); const sw = t < C.tag ? -200 : (1 - el(p)) * -40 + Math.sin(t * 2.2) * 2.5 * p; tg.setAttribute("transform", `translate(640 ${128 + (t < C.tag ? -400 : (1 - eo(P(t, C.tag, .35))) * -300)}) rotate(${t < C.tag ? 0 : sw})`); }
+  document.querySelectorAll(".pp").forEach((p) => { const i = +p.dataset.i, a = C.queue + i * .28, k = P(t, a, .5); p.firstElementChild.setAttribute("transform", `translate(${(1 - eo(k)) * -120} ${(1 - bo(k)) * 30 + Math.sin(t * 3 + i) * 2}) `); p.setAttribute("opacity", eo(k)); });
+  tf($("queue"), 1); tf($("spot"), 1);
+  tf($("clock"), eo(P(t, .5, .4)) * (1 - eo(P(t, C.tag - .2, .3))), (1 - eo(P(t, .5, .4))) * -40);
+  const h10 = eo(P(t, C.tag, .3)) * (1 - eo(P(t, C.q - .05, .3)));
+  tf($("h10"), h10, 0, 0, .7 + .3 * bo(P(t, C.tag, .5)), (1 - bo(P(t, C.tag, .5))) * -8); $("h10").style.transformOrigin = "left center";
+  tf($("hq"), eo(P(t, C.q, .35)), 0, (1 - bo(P(t, C.q, .6))) * 60);
+  // bandi shrink a little when question shows
+  /* SALES */
+  tf($("salesL"), eo(P(t, cut[0] + .1, .4)), (1 - eo(P(t, cut[0] + .1, .5))) * -60);
+  $("salesN").textContent = fmt(500 * eio(P(t, C.dots0, C.dots1 - C.dots0)));
+  const n = Math.round(500 * eio(P(t, C.dots0, C.dots1 - C.dots0)));
+  const dots = $("dots").children; for (let i = 0; i < 500; i++) { const on = i < n; if (dots[i].classList.contains("on") !== on) dots[i].classList.toggle("on", on); }
+  tf($("grid"), eo(P(t, cut[0] + .2, .45)), (1 - eo(P(t, cut[0] + .2, .55))) * 80, 0, 1, (1 - eo(P(t, cut[0] + .2, .55))) * 3);
+  tf($("salesEq"), eo(P(t, C.eq, .3)), 0, (1 - bo(P(t, C.eq, .5))) * 50);
+  $("salesR").textContent = fmt(5000 * eo(P(t, C.eq + .3, 1.0)));
+
+  /* LEDGER */
+  tf($("receipt"), eo(P(t, C.receipt, .45)), 0, (1 - bo(P(t, C.receipt, .7))) * -700, 1, (1 - eo(P(t, C.receipt, .7))) * 4);
+  const spots = [[C.besan, C.chilli], [C.chilli, C.oil], [C.oil, C.twist], [C.gas, C.onion], [C.onion, C.helper], [C.helper, C.total]];
+  spots.forEach(([a, b], i) => {
+    const it = $("it" + i), pin = bo(P(t, a, .55)), pout = eio(P(t, b - .05, .35));
+    const o = t < a ? 0 : t > b + .3 ? 0 : 1;
+    let y = (1 - pin) * 120 - pout * 140, s = (i === 3 ? .4 + .6 * bo(P(t, a, .45)) : .85 + .15 * pin);
+    if (i === 3) { const sh = t > a && t < a + .5 ? Math.sin(t * 90) * 10 * (1 - P(t, a, .5)) : 0; y += sh; }
+    tf(it, o * eo(P(t, a, .2)) * (1 - pout), 0, y, s);
+  });
+  // gas item: shrink/move left-down to make room for price + days
+  const g = $("it3"); if (t > C.gasPrice) { const k = eio(P(t, C.gasPrice - .3, .5)); g.style.transform += ` translate(${k * 150}px, ${-k * 20}px) scale(${1 - .3 * k})`; g.querySelector(".name").style.opacity = 1 - k; }
+  tf($("twist"), eo(P(t, C.twist, .3)) * (1 - eo(P(t, C.gas - .1, .2))), 0, (1 - bo(P(t, C.twist, .5))) * 40);
+  $("twist").querySelector(".x").style.setProperty("--s", eio(P(t, C.twist + 1.0, .4)));
+  // besan ghost under twist
+  tf($("gasPrice"), eo(P(t, C.gasPrice, .3)) * (1 - eo(P(t, C.onion - .3, .3))), 0, 0, .6 + .4 * bo(P(t, C.gasPrice, .5)), (1 - bo(P(t, C.gasPrice, .5))) * -6);
+  tf($("gasDays"), (t > C.days - .6 ? 1 : 0) * (1 - eo(P(t, C.onion - .3, .3))));
+  for (let i = 0; i < 4; i++) { const k = P(t, C.days - .6 + i * .12, .35); tf($("gd" + i), eo(k), 0, (1 - bo(k)) * 40); }
+  tf($("gdr"), eo(P(t, C.days + .1, .3)), (1 - eo(P(t, C.days + .1, .4))) * -30);
+  $("itTot").style.opacity = eo(P(t, C.total, .3)); $("itTot").style.transform = `scale(${.7 + .3 * bo(P(t, C.total, .5))})`;
+  const rAt = [C.rBesan, C.rChilli, C.rOil, C.rGas, C.rOnion, C.rHelper]; let tot = 0;
+  rAt.forEach((a, i) => { const k = P(t, a, .4), r = $("rw" + i); tf(r, eo(k), (1 - eo(k)) * 40); r.classList.toggle("hot", i === 3 && t > a); tot += ITEMS[i].val * eo(P(t, a, .6)); });
+  $("tot").textContent = fmt(tot);
+  const tp = 1 + .12 * Math.sin(Math.PI * P(t, C.total, .5)); document.querySelector("#receipt .tot .r").style.transform = `scale(${tp})`;
+
+  /* PROFIT */
+  tf($("eq"), eo(P(t, C.eq2, .35)), 0, (1 - bo(P(t, C.eq2, .55))) * -50);
+  tf($("res"), eo(P(t, C.res - .2, .3)), 0, 0, .6 + .4 * bo(P(t, C.res - .2, .55)));
+  $("profN").textContent = fmt(1260 * eo(P(t, C.res - .1, 1.2)));
+
+  /* COIN */
+  tf($("donut"), eo(P(t, C.donut, .35)), 0, 0, .8 + .2 * bo(P(t, C.donut, .6)), (1 - eo(P(t, C.donut, .8))) * -40);
+  COIN.forEach((c, i) => {
+    const ds = $("ds" + i), len = +ds.dataset.len, CIRC = 2 * Math.PI * 250, a = C.donut + .25 + i * .2, k = eo(P(t, a, .3));
+    ds.setAttribute("stroke-dasharray", `${len * k} ${CIRC}`);
+    if (i === 6) { const o = bo(P(t, C.owner, .5)); const mid = (-90 + (1 - 2.52 / 20) * 360) * Math.PI / 180; $("dg6").setAttribute("transform", `translate(${Math.cos(mid) * 34 * o} ${Math.sin(mid) * 34 * o}) rotate(${-90 + (7.48 / 10) * 360})`); }
+    tf($("lg" + i), eo(P(t, a, .3)), (1 - eo(P(t, a, .4))) * 30, 0, i === 6 ? .9 + .1 * bo(P(t, C.owner, .5)) : 1);
+  });
+  tf($("legend"), eo(P(t, C.donut, .3)));
+  const ot = t > C.owner; document.querySelector("#dTxt").textContent = ot ? "₹2.52" : "₹10"; document.querySelector("#dTxt").setAttribute("fill", ot ? "#d93a26" : INK);
+  document.querySelector("#dSub").textContent = ot ? "ఓనర్‌కి" : "ఒక్క బజ్జీ";
+
+  /* CLOSE */
+  tf($("cal"), eo(P(t, C.cal, .35)), (1 - eo(P(t, C.cal, .5))) * -60);
+  for (let i = 1; i <= 30; i++) { const c = $("cd" + i); const isOff = i % 7 === 0 || i === 30 && false; const on = !isOff && t > C.cal + .3 + i * .045; c.className = isOff ? (t > C.cal + .3 + i * .045 ? "off" : "") : on ? "on" : ""; }
+  tf($("monthR"), eo(P(t, C.cal + .3, .35)), 0, (1 - bo(P(t, C.cal + .3, .5))) * 40);
+  $("monN").textContent = fmt(30000 * eo(P(t, C.cal + .4, 1.4)));
+  tf($("cta"), eo(P(t, C.cta, .3)), 0, 0, .7 + .3 * bo(P(t, C.cta, .55)), (1 - bo(P(t, C.cta, .55))) * 6);
+  $("cta").style.transformOrigin = "left center";
+
+  /* END */
+  tf($("end"), eio(P(t, C.end, .5)), 0, 0, 1);
+  const em = $("end").querySelector(".m"); em.style.transform = `scale(${.6 + .4 * bo(P(t, C.end + .2, .6))}) rotate(${(1 - bo(P(t, C.end + .2, .6))) * -12}deg)`;
+
+  /* subtitles */
+  const cur = TL.lines.find((l) => t >= l.start - .06 && t <= l.end + .2);
+  if (cur && t < C.end) { $("subtext").textContent = cur.text; const k = Math.min(eo((t - cur.start + .06) / .16), 1 - eio((t - cur.end) / .2)); tf($("sub"), k, 0, (1 - k) * 8); } else $("sub").style.opacity = 0;
+  const sl = $("srcline"); const src = t > C.gasPrice && t < C.onion ? "SOURCE: GOODRETURNS · 21 NOV 2026" : t > cut[0] && t < C.end ? "సంఖ్యలు అంచనాలు" : ""; sl.textContent = src; sl.style.opacity = src ? 1 : 0;
+};
+</script>
+</body>
+</html>
