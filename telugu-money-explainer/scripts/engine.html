@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="te">
+<head>
+<meta charset="utf-8" />
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Telugu:wght@500;600;700;800;900&family=Ramabhadra&family=Inter:wght@500;600;700;800;900&family=IBM+Plex+Mono:wght@500;600&family=Fraunces:ital,opsz,wght@1,9..144,500;1,9..144,700&display=block" rel="stylesheet" />
+<style>
+:root{--bg0:#0f0e0c;--bg1:#1c1916;--ivory:#f3eee4;--gold:#c9a24a;--gold2:#e2c27a;--red:#c5443a;--sage:#8fae7f;--gray:#8f877b;--line:rgba(243,238,228,.14)}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{width:1920px;height:1080px;overflow:hidden;background:#000}
+body{font-family:"Noto Sans Telugu",sans-serif;color:var(--ivory);-webkit-font-smoothing:antialiased}
+.scene{position:absolute;inset:0;overflow:hidden}
+.dark{background:radial-gradient(ellipse 120% 90% at 50% 40%,var(--bg1),var(--bg0) 70%)}
+.dark::after{content:"";position:absolute;inset:0;background-image:radial-gradient(rgba(255,255,255,.035) 1px,transparent 1px);background-size:4px 4px;opacity:.5;pointer-events:none}
+.paper{background:radial-gradient(ellipse at 50% 40%,#f6f1e8,#e9e1d3);color:#1b1714}
+.photo{position:absolute;inset:-4%;background-size:cover;background-position:center;filter:contrast(1.06) saturate(.82) brightness(.86) sepia(.08)}
+.scrim{position:absolute;inset:0;background:linear-gradient(to top right,rgba(8,7,6,.92) 0%,rgba(8,7,6,.62) 38%,rgba(8,7,6,.18) 70%,rgba(8,7,6,.05)),radial-gradient(ellipse at 50% 50%,transparent 55%,rgba(0,0,0,.55))}
+.scrimfull{position:absolute;inset:0;background:rgba(8,7,6,.62)}
+.lt{position:absolute;left:120px;bottom:120px;max-width:1200px}
+.eyebrow{font-family:"IBM Plex Mono",monospace;font-size:26px;letter-spacing:.14em;color:var(--gray);text-transform:uppercase;font-weight:600}
+.eyebrow.te{font-family:"Noto Sans Telugu";letter-spacing:.02em;text-transform:none;font-size:30px}
+.head{font-weight:800;font-size:76px;line-height:1.22}
+.big{font-family:Inter,"Noto Sans Telugu";font-weight:800;font-variant-numeric:tabular-nums;letter-spacing:-.02em;line-height:1}
+.te0{letter-spacing:0;font-family:"Noto Sans Telugu";font-weight:800}
+.gold{color:var(--gold)}.red{color:var(--red)}.sage{color:var(--sage)}.gray{color:var(--gray)}
+.pill{display:inline-block;padding:10px 26px;border-radius:999px;font-size:30px;font-weight:700;border:2px solid currentColor;margin-right:16px}
+.src{position:absolute;left:120px;bottom:46px;font-family:"IBM Plex Mono";font-size:20px;letter-spacing:.12em;color:var(--gray)}
+.rule{height:2px;background:var(--gold);transform-origin:left}
+.strike{position:relative;display:inline-block}
+.strike i{position:absolute;left:-4%;top:52%;height:7px;width:108%;background:var(--red);transform-origin:left;border-radius:4px}
+.hl{position:absolute;border:3px solid var(--gold);border-radius:12px;box-shadow:0 0 0 9999px rgba(0,0,0,0)}
+.bar{height:56px;border-radius:6px;transform-origin:left}
+.row{display:flex;align-items:center;gap:28px}
+.ser{font-family:Fraunces,serif;font-style:italic}
+.center{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center}
+.box{background:rgba(24,22,19,.72);border:1px solid var(--line);border-radius:20px;backdrop-filter:blur(6px)}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script>
+// Deterministic renderer: window.setup(scenes) once, then window.at(t) per frame.
+// Animated attributes (absolute seconds):
+//  data-in="t"        fade + rise 18px over .45s           data-out="t" fade out .3s
+//  data-count="from,to,t0,dur[,decimals]"  rolling number (en-IN commas) ; data-fmt prefix/suffix via data-pre / data-suf
+//  data-draw="t[,dur]" scaleX 0->1 (strikes, rules, bars)
+//  data-on="t0,t1"    active (opacity 1) between t0..t1, else .35 (list focus)
+//  data-pop="t"       scale overshoot pop
+let S=[],els=[];
+const ease=x=>1-Math.pow(1-Math.min(1,Math.max(0,x)),3);
+const back=x=>{x=Math.min(1,Math.max(0,x));const c=1.5;return 1+(c+1)*Math.pow(x-1,3)+c*Math.pow(x-1,2)};
+const fmt=(v,d)=>Number(v).toLocaleString('en-IN',{minimumFractionDigits:d,maximumFractionDigits:d});
+window.setup=function(scenes){
+  S=scenes;const root=document.getElementById('root');
+  for(const s of S){
+    const d=document.createElement('div');d.className='scene '+(s.cls||'');d.style.opacity=0;
+    let inner='';
+    if(s.photo){inner+=`<div class="photo" style="background-image:url('${s.photo}')"></div><div class="${s.full?'scrimfull':'scrim'}"></div>`}
+    d.innerHTML=inner+s.html;root.appendChild(d);s.el=d;s.ph=d.querySelector('.photo');
+    d.querySelectorAll('.eyebrow').forEach(e=>{if(/[\u0C00-\u0C7F]/.test(e.textContent))e.classList.add('te')});
+    s.anims=[...d.querySelectorAll('[data-in],[data-out],[data-count],[data-draw],[data-on],[data-pop]')];
+  }
+};
+window.at=function(t){
+  for(const s of S){
+    const vis=t>=s.start-0.001&&t<s.end+(s.xf||0);
+    s.el.style.display=vis?'block':'none';if(!vis)continue;
+    const xf=s.xf||0;let o=1;
+    if(xf>0&&t<s.start+xf)o=(t-s.start)/xf;
+    s.el.style.opacity=o;s.el.style.zIndex=Math.round(s.start*10);
+    if(s.ph){const p=(t-s.start)/Math.max(1,s.end-s.start),m=s.move||'in';let sc=1,x=0;
+      if(m=='in')sc=1+.07*p;else if(m=='out')sc=1.07-.07*p;else if(m=='l'){sc=1.04;x=-30+60*(1-p)}else{sc=1.04;x=-30+60*p}
+      s.ph.style.transform=`translateX(${x}px) scale(${sc})`;}
+    for(const e of s.anims){
+      let op=1,ty=0,sc=1;const D=e.dataset;
+      if(D.in!==undefined){const k=ease((t-+D.in)/.45);op*=k;ty=18*(1-k)}
+      if(D.out!==undefined){op*=1-Math.min(1,Math.max(0,(t-+D.out)/.3))}
+      if(D.on!==undefined){const [a,b]=D.on.split(',').map(Number);const act=t>=a&&t<b;const k=act?ease((t-a)/.3):0;op*=.32+.68*k;e.classList.toggle('act',act)}
+      if(D.pop!==undefined){const k=(t-+D.pop)/.5;sc=k<=0?.6:back(k);op*=Math.min(1,Math.max(0,k*3))}
+      if(D.draw!==undefined){const [a,du]=(D.draw+',.6').split(',').map(Number);e.style.transform=`scaleX(${ease((t-a)/(du||.6))})`}
+      if(D.count!==undefined){const [f,to,a,du,dd]=D.count.split(',').map(Number);const k=ease((t-a)/(du||1.2));
+        e.textContent=(D.pre||'')+fmt(f+(to-f)*k,dd||0)+(D.suf||'')}
+      if(D.draw===undefined){e.style.opacity=op;e.style.transform=`translateY(${ty}px) scale(${sc})`}else if(D.in!==undefined)e.style.opacity=op;
+    }
+  }
+};
+</script>
+</body>
+</html>

@@ -1,6 +1,6 @@
 ---
 name: telugu-money-explainer
-description: Produce complete, upload-ready Telugu YouTube "money math" explainer videos (business breakdowns like "How much does a mirchi bajji bandi owner really keep?") fully automatically - research, Telugu script, human-sounding Telugu voiceover, real stock footage edited with motion-graphics overlays, music, subtitles, thumbnail, title, description, chapters and Shorts. Use whenever the user asks for a new episode, a video idea, a script, a thumbnail or Shorts for the Telugu explainer channel.
+description: Produce complete, upload-ready Telugu YouTube "money math" explainer videos (business breakdowns like "How much does a mirchi bajji bandi owner really keep?") fully automatically - research, Telugu script, human-sounding Telugu voiceover, real stock footage edited with motion-graphics overlays, dark editorial motion graphics (no subtitles), music, thumbnail, title, description, chapters and Shorts. Use whenever the user asks for a new episode, a video idea, a script, a thumbnail or Shorts for the Telugu explainer channel.
 ---
 
 # Telugu Money-Math Explainer Videos
@@ -23,7 +23,7 @@ The single most important rule: **the video must feel made by a careful human ed
 | Format | Business and money breakdowns with real numbers, told as a story |
 | Language | Spoken Telugu (Hyderabad/Andhra conversational), with common English words people actually use: business, profit, rent, EMI, GST, app, delivery |
 | Length | Main video 8 to 11 minutes. Sample/pilot 60 to 90 seconds. Shorts 30 to 50 seconds |
-| Look | 70% real stock footage and photos, 30% clean motion graphics (numbers, receipts, charts, maps) on top |
+| Look | About 65% real stock footage (video preferred), 35% dark editorial motion graphics. No subtitles, no logo (see section 6) |
 | Voice | One Indian male narrator, warm, confident and curious, like explaining to a friend over chai |
 | Promise to the viewer | "We count every rupee honestly. No hype." |
 
@@ -114,7 +114,7 @@ For a 60 to 90 second pilot, compress this to hook → sales → costs → twist
 
 ### Script file format
 
-Save as `script.json`, one object per sentence (this drives alignment and subtitles):
+Save as `script.json`, one object per sentence (this drives alignment and graphic cues):
 
 ```json
 [
@@ -141,7 +141,7 @@ Save as `script.json`, one object per sentence (this drives alignment and subtit
 ### 4.2 Consistency rules (very important)
 
 - **Never generate the narration sentence by sentence.** Separate calls sound like different people. That was the user's biggest complaint.
-- Generate in **large chunks: one chunk per scene or section, 1,500 to 2,500 characters each**, with the same voice and settings and a fixed `seed`.
+- Generate in **large chunks: one chunk per scene or section, 500 to 1,400 characters each** (eleven_v3 silently cut off a 1,600-character Telugu chunk mid-sentence in EP02; always check the end of each chunk is spoken), with the same voice and settings and a fixed `seed`.
 - Join chunks with a 0.35 to 0.6 second natural pause.
 - For a pilot of 90 seconds or less, use **one single request** for the whole script.
 
@@ -150,7 +150,7 @@ Save as `script.json`, one object per sentence (this drives alignment and subtit
 For every chunk:
 1. Transcribe it with OpenAI `gpt-4o-transcribe`, `language: "te"`, with the prompt "అన్ని సంఖ్యలను తెలుగు పదాలలో రాయండి" (so numbers come back as words, not digits).
 2. Compare the transcript with the script text after removing spaces and punctuation (difflib ratio).
-3. **Accept at 0.97 or higher.** Otherwise regenerate that chunk (up to 4 takes) and keep the best.
+3. Before comparing, English words in the script are converted to Telugu spelling (`scripts/translit.ts`; add any new English word you use), because the transcript writes "shop" as "షాప్". **Accept at 0.93 or higher** (spoken contractions like తీస్కుంటున్నారు cost a few points). Otherwise regenerate that chunk (up to 4 takes) and keep the best.
 4. Small spoken variants are fine ("ఐదైతే" for "ఐదు అయితే", "ఐదొందల" for "ఐదు వందల"). Wrong numbers, skipped words or another language are not.
 
 `scripts/tts_elevenlabs.ts` and `scripts/verify_voice.ts` do this.
@@ -162,7 +162,7 @@ The edit must cut exactly on sentences. `scripts/align.py`:
 2. Maps the sentence boundaries to the pauses, weighted by sentence length (dynamic programming).
 3. Writes `timeline.json` with `start` and `end` for every sentence id.
 
-**Always verify the alignment:** cut each sentence out, transcribe it, and check that it matches its own text. Fix wrong boundaries by hand from the pause list. A misaligned boundary means subtitles and graphics land on the wrong words.
+**Always verify the alignment:** cut each sentence out, transcribe it, and check that it matches its own text. Fix wrong boundaries by hand from the pause list. A misaligned boundary means graphics land on the wrong words.
 
 ### 4.5 The user's own voice (optional)
 
@@ -194,55 +194,78 @@ If the keys are missing, ask the user to add them in the Vibecode ENV tab. **Nev
 
 ---
 
-## 6. Editing style: "made by a human editor"
+## 6. Editing style v2: dark editorial data-explainer (approved by the user, EP02 preview)
 
-### Shot rhythm
+This replaces the old cream "sticker card" style. The user approved this look on the EP02 wine-shop preview (1:42). Every episode must look like that.
 
-- Cut on sentence boundaries or on strong words. Average shot length **2.5 to 4.5 seconds**. Never hold one shot longer than 6 seconds without movement or a graphic change.
-- Every shot moves a little: slow push-in, pan, or the footage's own motion.
-- Transitions: mostly **hard cuts**. Use a quick 6 to 8 frame crossfade or a whip/slide only at chapter changes. No flashy preset transitions.
-- Light colour grade on every clip so the footage matches: slight warmth, +5% contrast, −5% saturation (ffmpeg `eq` / `colorbalance`).
-- Chapter cards between sections: a 1.2 second full-screen title in the channel style.
+### Hard rules from the user
 
-### Motion graphics overlays (HTML → transparent frames)
+- **No subtitles or captions.** The audience is Telugu. Instead, show only the **key word or number** at the moment the narrator says it.
+- **No channel logo or brand bug** until the channel name is finalised. No watermark.
+- **No white or cream cards over footage.** They look childish. Text sits directly on darkened footage or on a dark canvas.
+- **Never show a finished list or slide all at once.** Reveal it piece by piece in sync with the voice. The active item is full brightness; the others dim to about 32%, so the viewer knows where to look.
+- **Numbers always count up** (odometer roll, tabular digits) when spoken. Never a static equation.
+- **Mix of shots:** about 65% footage (stock **video** preferred, photos with slow push or pan otherwise) and about 35% pure motion-graphics scenes. Never the whole video as graphics.
+- **No blue anywhere.** Use the classic palette below.
 
-Graphics are built in HTML/CSS/SVG and rendered frame by frame with headless Chromium (Playwright), then composited over the footage. `templates/graphics-reference.html` is the approved library of components from the pilot episode. Reuse its look:
+### Palette (classic, warm)
 
-- **Palette:** paper `#f3ebdd`, ink `#1b1714`, chilli red `#d93a26`, turmeric `#f2b632`, leaf green `#2f8f5b`, gas blue `#2d6fd6`.
-- **Fonts:** `Ramabhadra` (Telugu headlines), `Noto Sans Telugu` 700/900 (body, subtitles), `Anton` (₹ numbers), `JetBrains Mono` (sources, small labels).
-- **Style:** cream cards with a 4 px ink border and a hard 10 px offset ink shadow ("sticker" look), bold numbers, chips for "అంచనా".
-- **Components:**
-  - Location/time chip ("హైదరాబాద్ · సాయంత్రం 5:00")
-  - Big price stamp (₹10) that pops in with a slight overshoot
-  - Running cost **receipt** that fills line by line with icons and an animated total
-  - Number counters that roll up when the narrator says the number
-  - Equation reveal (₹5,000 − ₹3,740 = **₹1,260**)
-  - **"Where your ₹10 goes" donut chart** with the owner's slice pulled out
-  - Month calendar that ticks through the working days
-  - Comment-question card for the CTA
-  - End card with the channel logo
-- Over footage, put cards on a **semi-opaque paper panel** or add a soft dark gradient behind white text, so text is always readable.
-- **Timing:** a graphic appears 0.1 to 0.3 seconds before the narrator says its number and stays until the idea changes. Use the `timeline.json` cue times.
-- **Subtitles:** always on, bottom centre, Noto Sans Telugu 700 at 42 px, cream text on an ink pill, one sentence at a time, kept clear of graphics.
-- **Brand bug** at top-left (logo + channel name), a progress bar at the top, and a small source line ("SOURCE: GOODRETURNS · 21 NOV 2026") whenever a sourced number is on screen.
-- **Safe area:** keep important text 60 px from the edges. Leave the bottom 160 px for subtitles.
+| Token | Hex | Use |
+| --- | --- | --- |
+| bg | `#0f0e0c` to `#1c1916` radial | graphics canvas (warm charcoal, faint dot grain) |
+| ivory | `#f3eee4` | headlines, body |
+| gold | `#c9a24a` | key numbers, positives, highlights, rules, the active list number |
+| red | `#c5443a` | costs, losses, strikethroughs, "non-refundable" |
+| sage | `#8fae7f` | owner's profit (sparingly) |
+| gray | `#8f877b` | eyebrow labels (`— label`), sources, baselines |
+| paper | `#f6f1e8` | **chapter cards only** (the user likes these: "CHAPTER 1" in mono, title in Ramabhadra, small red rule) |
 
-Render graphics as **PNG frames with alpha** (`omitBackground: true`) into a ProRes 4444 or QTRLE `.mov`, then overlay them on the footage track in ffmpeg.
+### Fonts
 
-### Edit Decision List
+- Telugu text: **Noto Sans Telugu** 700/800. Chapter titles: **Ramabhadra**.
+- Numbers: **Inter** 800 with `font-variant-numeric: tabular-nums`.
+- Latin eyebrows and sources: **IBM Plex Mono** uppercase with letter-spacing.
+- **Telugu rendering rule (the user spotted broken letters):** never apply letter-spacing, uppercase or a Latin-only font to Telugu. Wide letter-spacing breaks Telugu conjuncts (తెలంగాణ, ఈ రోజు). The engine auto-switches any `.eyebrow` containing Telugu to the `te` style. Inside `.big` number lines, wrap Telugu words in `<span class="te0">`. After rendering, crop and view every Telugu label at full size.
 
-Write `edl.json` before rendering:
+### Scene templates (all in `scripts/engine.html` CSS; see `templates/plan_example.py`)
 
-```json
-[
-  { "start": 0.0, "end": 3.2, "src": "footage/cart_queue.mp4", "in": 4.0, "move": "push", "grade": true },
-  { "start": 3.2, "end": 6.0, "src": "footage/bajji_fry.jpg", "move": "pan-left" }
-]
-```
+1. **B-roll + lower third:** photo or video with a dark bottom-left scrim. Bottom-left stack: `— eyebrow`, then a bold headline or a big counting number, then optional pills (`.pill red/gold`) or a red strikethrough price swap (`.strike` + `<i data-draw>`). Source line bottom-left.
+2. **Kinetic / data scene (dark canvas):** big counters, horizontal comparison bars that grow (`data-draw`), an equation line whose result counts up, and a final pop (`data-pop`).
+3. **Focus list:** a numbered list where each row enters on its spoken cue and stays highlighted (`data-on`) until the next item.
+4. **Chapter card (paper):** 2 to 2.5 s.
+5. **Date / clock card:** full dimmed photo with a huge date or time and a counter below.
+6. **Browser proof card (to add when a source screenshot exists):** dark browser frame with the real article or notice, and a gold box drawing around the line being read.
+7. **Cash-box HUD (money chapters):** a small top-right dark card with a rolling balance and a red or gold delta flash when a cost or sale is mentioned.
 
-`scripts/build_broll.py` turns the EDL into `broll.mp4` (1920×1080, 30 fps), including trims, scale/crop to fill, Ken Burns on photos, light grade and short crossfades where `"xfade": true`.
+### Motion and pacing
 
----
+- A visual beat every 2 to 4 s, locked to word timings from `audio/words.json`. In the plan, use `w(sid, "word")` to get the cue time; it starts 0.15 s before the word.
+- Element entrance: ease-out fade plus rise 18 px over 0.45 s. Counters take 1.0 to 1.4 s. Strikes and bars draw left to right in 0.5 to 1.0 s.
+- Scene changes: hard cuts on footage, or a 0.2 to 0.25 s crossfade (`xf`) into graphics scenes.
+- Footage moves: `in` (push), `out`, `l`, `r` (pans), with a light warm grade and vignette.
+- Every big number shows a gray `SOURCE · …` line.
+
+### Engine (how the v2 video is built)
+
+`scripts/engine.html` is a deterministic renderer. `window.setup(scenes)` runs once, then `window.at(t)` is called for each frame. Scenes are written in Python (`plan_v2.py`, copied from `templates/plan_example.py`) as `{start, end, html, photo, move, cls: "dark"|"paper", xf, full}`. The HTML uses animation attributes with absolute seconds:
+
+| Attribute | Effect |
+| --- | --- |
+| `data-in="t"` | fade + rise in |
+| `data-out="t"` | fade out |
+| `data-count="from,to,t,dur[,decimals]"` + `data-pre` / `data-suf` | rolling number in en-IN format (₹3,00,000) |
+| `data-draw="t,dur"` | scaleX 0→1 (bars, rules, strikethroughs) |
+| `data-on="t0,t1"` | list focus (bright between t0 and t1, dimmed otherwise) |
+| `data-pop="t"` | overshoot pop |
+
+`scripts/render_v2.mjs` screenshots every frame (JPEG) in N parallel pages and pipes them to ffmpeg. It runs at about 20 fps on 2 CPUs, so 100 s of video takes about 2.5 minutes. For stock video, extract the clip frames to JPEG and point the scene's photo at the frame for each `t` (same deterministic approach).
+
+### Workflow for the edit
+
+1. Write `plan_v2.py`: one scene for every 3 to 12 s of narration, alternating footage scenes and graphics scenes. Every number in the script gets a `data-count` on its spoken word.
+2. `python3 plan_v2.py` writes `graphics/scenes.json`.
+3. Render stills at 6 to 9 key times and build a contact sheet. **Look at them.** Fix overlaps, bars running under text, and broken Telugu.
+4. Render a 90 to 110 s preview first and send it to the user. After approval, render the full episode.
 
 ## 7. Music and sound
 
@@ -268,34 +291,28 @@ Folder per episode: `episodes/<slug>/` containing `script.json`, `research.json`
 # 1. Voice (chunks per scene) + verification
 bun scripts/tts_elevenlabs.ts episodes/<slug>
 bun scripts/verify_voice.ts episodes/<slug>
-# 2. Sentence timeline
+# 2. Sentence timeline + word timings (audio/voice.wav, timeline.json, audio/words.json)
 python3 scripts/align.py episodes/<slug>
-# 3. Stock footage candidates + manifest
-bun scripts/stock_fetch.ts episodes/<slug>
-# 4. Write edl.json (you choose the shots after looking at the contact sheets)
-python3 scripts/build_broll.py episodes/<slug>
-# 5. Graphics overlay (transparent) from your comp.html
-COMP=episodes/<slug>/graphics/comp.html bun scripts/render_frames.ts episodes/<slug> --alpha
-# 6. Music + SFX + voice mix
-python3 scripts/mix.py episodes/<slug>
-# 7. Final composite
-ffmpeg -i out/broll.mp4 -i out/overlay.mov -i audio/mix.m4a \
-  -filter_complex "[0][1]overlay=0:0:format=auto[v]" -map "[v]" -map 2:a \
-  -c:v libx264 -preset slow -crf 18 -pix_fmt yuv420p -c:a copy -movflags +faststart out/final.mp4
+bun scripts/falign.ts episodes/<slug>
+# 3. Footage (Pexels/Pixabay video with keys; Wikimedia Commons photos via commons_fetch.py)
+# 4. Edit plan -> graphics/scenes.json
+python3 episodes/<slug>/plan_v2.py
+# 5. Render frames -> mp4 parts (start end out [workers])
+node scripts/render_v2.mjs episodes/<slug> 0 <duration> episodes/<slug>/out/v2/full 2
+# 6. Concat parts, mix voice + ducked music (bed about -21 dB, sidechain) + subtle SFX, loudnorm -14 LUFS
 ```
 
-In Vibecode, scripts that call paid APIs must run from `backend/` with `bun --env-file=.env` and import `@vibecodeapp/proxy` first. The scripts here do that automatically when the package is available.
-
----
+Paid API scripts run from `backend/` with `bun --env-file=.env` and import `@vibecodeapp/proxy` first.
 
 ## 9. Quality checklist (all must pass before delivery)
 
-- [ ] Voice: one voice throughout; every chunk scores 0.97 or higher on transcription similarity; no clicks or long gaps at chunk joins.
+- [ ] Voice: one voice throughout; every chunk scores 0.93 or higher (or is checked number by number by hand) on transcription similarity; no clicks or long gaps at chunk joins.
 - [ ] Every number spoken matches the number on screen and in `research.json`; totals recomputed in code.
 - [ ] Sourced numbers show a source line; estimates show "అంచనా".
-- [ ] Subtitles match the audio (spot-check 5 random sentences by extracting frames at their mid-times).
+- [ ] No subtitles and no logo. Key words and numbers appear on their spoken words (spot-check 5 cues against words.json).
+- [ ] Every Telugu label renders correctly at full size (no letter-spacing or uppercase on Telugu).
 - [ ] No AI-generated imagery anywhere. No watermarks. No shot held more than 6 seconds without change.
-- [ ] Contact sheet of 8 frames from across the video reviewed by you: readable text, nothing overlapping subtitles, no blank frames.
+- [ ] Contact sheet of 8 frames from across the video reviewed by you: readable text, no overlaps between counters, bars and labels, no blank frames.
 - [ ] Loudness −14 LUFS ±1; music never louder than voice.
 - [ ] Ends with the CTA question and the end card; total runtime within the target.
 
@@ -317,7 +334,7 @@ Look at frames yourself (extract stills with ffmpeg and view them) before saying
 5. **Chapters** from the `timeline.json` section starts (the first must be 0:00).
 6. **Tags:** 10 to 15, mixing English and Telugu (`mirchi bajji business`, `telugu business ideas`, `street food business profit`…).
 7. **Pinned comment:** the CTA question plus "next video" voting options.
-8. **3 Shorts** (1080×1920, 30 to 50 seconds each): the hook plus twist, the profit-per-unit reveal, and the "your version" tip. Crop footage to the centre, enlarge the graphics, burn in subtitles, add a "Full video" end line.
+8. **3 Shorts** (1080×1920, 30 to 50 seconds each): the hook plus twist, the profit-per-unit reveal, and the "your version" tip. Crop footage to the centre, enlarge the graphics, enlarge the key numbers, add a "Full video" end line.
 
 ---
 

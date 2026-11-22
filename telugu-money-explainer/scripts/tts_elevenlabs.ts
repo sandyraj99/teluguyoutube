@@ -6,7 +6,8 @@
 // Output: <ep>/audio/chunk_XX.mp3, <ep>/audio/voice.wav (48 kHz mono), <ep>/audio/chunks.json
 import "./common.ts";
 import { loadScript, similarity, transcribeTelugu } from "./common.ts";
-import { mkdir, writeFile } from "node:fs/promises";
+import { mkdir, writeFile, readFile } from "node:fs/promises";
+import { existsSync } from "node:fs";
 import { spawnSync } from "node:child_process";
 
 const VOICES: Record<string, string> = { roger: "CwhRBWXzGAHq8TQ4Fs17", chris: "iP95p4xoKVk53GoZ742B", daniel: "onwK4e9ZLuTAKqWW03F9" };
@@ -16,7 +17,7 @@ const vArg = args[args.indexOf("--voice") + 1];
 const voiceId = args.includes("--voice") ? (VOICES[vArg] ?? vArg) : VOICES.roger;
 const single = args.includes("--single");
 const KEY = process.env.ELEVENLABS_USER_KEY || process.env.ELEVENLABS_API_KEY;
-const MAX = 2400, TAKES = 4, PASS = 0.97, SEED = 4242;
+const MAX = 1400, TAKES = 3, PASS = 0.93, SEED = 4242;
 const GAP_SCENE = 0.55, LEAD = 0.4, TAIL = 2.5;
 
 const lines = await loadScript(ep);
@@ -42,10 +43,17 @@ async function tts(text: string, seed: number): Promise<Uint8Array> {
   throw new Error("TTS failed");
 }
 
+// --reuse: keep earlier takes whose text is unchanged (saves cost when only some chunks change)
+const prev = new Map<string, { bytes: Uint8Array; score: number; tx: string }>();
+if (args.includes("--reuse") && existsSync(`${ep}/audio/chunks.json`)) {
+  for (const c of JSON.parse(await readFile(`${ep}/audio/chunks.json`, "utf8")).chunks)
+    if (existsSync(c.file)) prev.set(c.text, { bytes: new Uint8Array(await readFile(c.file)), score: c.score, tx: c.transcript });
+}
 const report: any[] = [];
 for (let i = 0; i < chunks.length; i++) {
-  const c = chunks[i]; let best: { score: number; bytes: Uint8Array; tx: string } | null = null;
-  for (let k = 0; k < TAKES; k++) {
+  const c = chunks[i]; let best: { score: number; bytes: Uint8Array; tx: string } | null = prev.get(c.text) ?? null;
+  if (best) console.log(`chunk ${i + 1}/${chunks.length} reused: ${best.score}`);
+  for (let k = 0; k < TAKES && !(best && prev.has(c.text)); k++) {
     const bytes = await tts(c.text, SEED + k);
     const tx = await transcribeTelugu(bytes);
     const score = similarity(c.text, tx);
