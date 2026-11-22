@@ -16,6 +16,19 @@ The single most important rule: **the video must feel made by a careful human ed
 
 ---
 
+## 0. Quick start (read first)
+
+When the user says "new video", "next episode" or gives a topic:
+1. **Pitch 3 ideas** (section 2, step 1) and wait for a pick.
+2. **Research** with dated sources, then send the **Telugu script + research table** (section 3) and wait for "approved".
+3. After approval, **run the whole pipeline without more questions** (section 8): voice → alignment → footage → `plan_v2.py` → stills check → 100 s preview (send it) → full render → mix → `finish.sh`.
+4. **Deliver the upload kit** (section 10): final MP4, two thumbnails (A/B), title, full description with chapters, sources, credits and disclaimer, tags, pinned comment, upload settings.
+
+The approved look is the EP02 wine-shop episode: dark editorial graphics, no subtitles, no logo, count-up numbers (section 6). Use `templates/plan_example.py` + `templates/plan_example_rest.py` as the reference edit for a full 9-minute episode (copy them into the episode folder as `plan_v2.py` and `plan_v2_rest.py`; the first runs the second).
+Required keys: ElevenLabs and OpenAI via the Vibecode proxy (built in). For stock **video**, ask the user once for `PEXELS_API_KEY` / `PIXABAY_API_KEY` in the ENV tab; without them use Wikimedia Commons photos (`commons_fetch.py`) with Ken Burns moves.
+
+---
+
 ## 1. What the channel makes
 
 | Item | Spec |
@@ -299,7 +312,14 @@ bun scripts/falign.ts episodes/<slug>
 python3 episodes/<slug>/plan_v2.py
 # 5. Render frames -> mp4 parts (start end out [workers])
 node scripts/render_v2.mjs episodes/<slug> 0 <duration> episodes/<slug>/out/v2/full 2
-# 6. Concat parts, mix voice + ducked music (bed about -21 dB, sidechain) + subtle SFX, loudnorm -14 LUFS
+# 6. Music beds (scripts/music.ts, ElevenLabs music_v1, 2-3 beds) then mix: voice + ducked beds, -14 LUFS
+#    (edit bed lengths/offsets in mix.sh to match chapter times)
+bash scripts/mix.sh episodes/<slug>
+# 7. Concat parts + mux -> out/v2/final.mp4
+bash scripts/finish.sh episodes/<slug>
+# 8. Thumbnail(s)
+node scripts/thumbnail.mjs <photo> out/thumb_A.jpg '<red>' '<black>' '<yellow question>' '<strip with <b>numbers</b>>'
+# 9. Upload final.mp4 + thumbnails + upload_kit.txt to storage (scripts/upload.ts) and show them in chat
 ```
 
 Paid API scripts run from `backend/` with `bun --env-file=.env` and import `@vibecodeapp/proxy` first.
@@ -322,19 +342,45 @@ Look at frames yourself (extract stills with ffmpeg and view them) before saying
 
 ## 10. Delivery kit (give the user all of this)
 
-1. **Final video** (1920×1080 MP4) uploaded to storage. Show it in chat with `![title](url)`.
-2. **Thumbnail** (1280×720, under 2 MB), built in HTML, not AI:
-   - real photo/footage frame of the business on one side
-   - a huge ₹ number in chilli red with a thick ink outline
-   - a 3 to 5 word Telugu question in a yellow box ("ఓనర్‌కి ఎంత మిగులుతుంది?" / "How much is left for the owner?")
-   - channel name small at the top
-   - readable at phone size (test at 320 px wide)
-3. **Title** (under 70 characters): English formula plus a Telugu hook, e.g. `Mirchi Bajji Business: ₹10 బజ్జీలో ఓనర్‌కి ఎంత? | Real Numbers` ("How much does the owner get from a ₹10 bajji?").
-4. **Description:** two-line hook, what we counted, "All prices are real and dated <date>", the chapter list, the sources list, stock footage credits, the comment question, and "Subscribe" line plus 3 hashtags.
-5. **Chapters** from the `timeline.json` section starts (the first must be 0:00).
-6. **Tags:** 10 to 15, mixing English and Telugu (`mirchi bajji business`, `telugu business ideas`, `street food business profit`…).
-7. **Pinned comment:** the CTA question plus "next video" voting options.
-8. **3 Shorts** (1080×1920, 30 to 50 seconds each): the hook plus twist, the profit-per-unit reveal, and the "your version" tip. Crop footage to the centre, enlarge the graphics, enlarge the key numbers, add a "Full video" end line.
+`templates/upload_kit_example.md` is the EP02 kit. Follow its structure.
+
+1. **Final video** (1920×1080 MP4, about 140 MB for 9 min) uploaded to storage and shown in chat with `![title](url)`, plus the download link.
+2. **Thumbnails: always make two (A/B)** and tell the user to upload both with YouTube Studio **Test & Compare**.
+   - **A (approved reference style, `templates/thumbnail.html` via `scripts/thumbnail.mjs`):** bright, real photo where the business or its signboard is clearly visible in the lower 60%, and a white fade at the top. Centred stacked text:
+     - Headline (120 to 130 px, Noto Sans Telugu 900): the money hook in **red** with a red swoosh underline, then the business name in **black**. Examples: "₹3 లక్షల వైన్ షాప్", "₹99 బిర్యానీ", "₹12 టీ".
+     - **Yellow box:** the question, "ఓనర్ కి నిజంగా ఎంత మిగులుతుంది?" (or "నెలకి ఎంత మిగులుతుంది?", "లాభమా? నష్టమా?").
+     - **Red tilted strip** with numbers in yellow: the tension line, e.g. "రోజుకి ₹19,178 TAX · మిగిలేది ఎంత?" or "అమ్మకం ₹6,000 · చేతికి ₹570?".
+   - **B:** a dark variant with a different angle (a ratio or shock number, e.g. "36:1 · గెలిచేది ఎవరు?").
+   - Rules: at most 3 text blocks and 12 words or fewer; no AI images; no drinking or close-up faces; nothing covering the signboard; channel name small at the very top only once it is finalised. View it at 320 px wide before delivering.
+3. **Title** (under 70 characters, matching the thumbnail, not repeating it word for word): `<Business> Business: <₹ hook in Telugu>, ఓనర్‌కి ఎంత మిగులుతుంది? | Real Numbers`. Give one backup title.
+4. **Description**, in this order:
+   - a 2-line hook
+   - "ఈ video లో:" with 5 or 6 ✔ points
+   - the data honesty line ("numbers from govt notifications/news, dated; model-shop numbers are అంచనా")
+   - ⏱ chapters (first is 0:00; take them from the chapter-card start times in scenes.json)
+   - 📚 sources with dates
+   - 📷 photo/footage credits (CC BY/BY-SA need the author and licence) and the 🎵 music / 🎙 AI-voice line
+   - the 💬 comment question and the 🔔 subscribe line
+   - **⚠️ DISCLAIMER** (always):
+     - educational only, not advice
+     - "No real shop owner is shown or named; figures are for a model shop"
+     - "Narration is AI-generated (synthetic voice); facts are human-verified"
+     - Creative Commons photos
+   - **Sensitive topics** (alcohol, tobacco, gambling/lottery, betting, loans), add:
+     - "We do not promote or encourage <X>"
+     - for alcohol: "మద్యపానం ఆరోగ్యానికి హానికరం. Alcohol consumption is injurious to health. For viewers 18+."
+     - for money topics: "Not financial or investment advice"
+   - 3 hashtags.
+5. **Tags:** 10 to 15, English and Telugu.
+6. **Pinned comment:** the CTA question, plus 3 "next video" options to vote on, plus full credit links.
+7. **Upload settings to tell the user:**
+   - Altered/synthetic content: **No** (only the voice is synthetic; no realistic fake people or events)
+   - Made for kids: **No**
+   - Age restriction: off, unless the video shows consumption
+   - Category: Education
+   - Add the chapters
+   - Use the end screen for the next video
+8. **3 Shorts** (1080×1920, 30 to 50 s) when asked: the hook + twist, the profit reveal, and the "your version" tip. Use the same engine with a 1080×1920 viewport and the key numbers enlarged.
 
 ---
 

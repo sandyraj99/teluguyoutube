@@ -1,5 +1,5 @@
 set -e
-cd /home/user/workspace/episodes/ep02-wine-shop/audio
+cd "${1:?episode dir}/audio"  # bed lengths/offsets below are per-episode: set them to your chapter times
 for f in bedA bedB bedC; do ffmpeg -nostdin -loglevel error -y -i music/$f.mp3 -af loudnorm=I=-20:TP=-3:LRA=11 -ar 48000 -ac 2 music/${f}_n.wav; done
 ffmpeg -nostdin -loglevel error -y -i music/bedB_n.wav -i music/bedB_n.wav -filter_complex "[0][1]acrossfade=d=4:c1=tri:c2=tri" music/bedB_loop.wav
 ffmpeg -nostdin -loglevel error -y -i voice.wav -af "loudnorm=I=-16:TP=-2:LRA=9,aresample=48000" -ac 1 voice_n.wav
