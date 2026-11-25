@@ -174,6 +174,7 @@ Save as `script.json`, one object per sentence (this drives alignment and graphi
 - **Cold-start drift (EP03 lesson, the user heard it at 2:00):** a new chunk can start deeper and flatter for 5 to 15 s before it settles. Two fixes are built into `tts_elevenlabs.ts`:
   1. **Priming:** every chunk after the first is generated with the last 2 sentences of the previous chunk in front of it; the primer is cut off at the first word of the chunk using ElevenLabs forced alignment.
   2. **Start-drift check:** `voice_stats.py` measures the first 12 s of every chunk. Median pitch must be within 5% of the reference voice (chunk 1) and the pitch range at least 0.65× the reference; otherwise the chunk is regenerated. EP03's bad chunk started 8% low; the primed retake was 1.8% off.
+- **If one chapter keeps failing the drift check, rewrite its opening; don't just retry (EP04 lesson).** The "5 questions" chapter opened with commands and a rapid numbered list ("దుకాణంలో ఇవి తప్పక అడగండి. ఒకటి, …") and came out 13–25% higher-pitched in 10 of 10 takes. A calmer, conversational rewrite ("ఇక, … నెమ్మదిగా మాట్లాడుకుందాం. మొదటి ప్రశ్న, … అని.") passed at 2.2%. List chapters: use "మొదటి ప్రశ్న / రెండో ప్రశ్న" sentences, not bare "ఒకటి, రెండు". Extra takes: `TAKES=6 SEED_OFFSET=10` with `--reuse` (delete that chunk's wav first).
 - **Write English loanwords in Telugu letters** (ప్లేట్, యాప్, కమిషన్). Mixing Latin and Telugu script makes the voice switch accent mid-sentence.
 - **Loudness-match every chunk to −18 LUFS** before joining (built in).
 - **Sentence timeline:** build it from forced-alignment word timings (token counts per sentence), not from silence detection; silence DP put several EP03 boundaries in the wrong place.
@@ -405,7 +406,29 @@ Look at frames yourself (extract stills with ffmpeg and view them) before saying
    - Category: Education
    - Add the chapters
    - Use the end screen for the latest uploaded video (never a "coming next" topic card)
-8. **3 Shorts** (1080×1920, 30 to 50 s) when asked: the hook + twist, the profit reveal, and the "your version" tip. Use the same engine with a 1080×1920 viewport and the key numbers enlarged.
+8. **3 Shorts** (1080×1920, 30 to 50 s) when asked ("render them" after a delivery means the Shorts): the hook + twist, the money reveal, and the practical tip. Build them from the finished episode (section 10.1), never with a new voice.
+
+### 10.1 Shorts (approved EP04 method)
+
+Cut Shorts **from the final episode** (same voice + music mix, so the voice never changes) and frame the 16:9 clip in a vertical layout. No new TTS, no re-render of the scenes.
+
+1. Pick 2 to 4 segments per Short from `timeline.json` line times (start − 0.2 s, end + 0.2 s). Segments can be out of order: hook question → answer number → twist → the CTA line asking for a comment. 30 to 45 s total.
+   - EP04: S1 = hook h01–h05 + resale b05–b06 + break-even b09 + comment b07 (36.6 s); S2 = bill total s11 + "who gets what" r01–r08 (38 s); S3 = bill h02 + 5 questions t02–t07 + comment v05 (43.2 s).
+2. Copy `templates/shorts_spec_example.py` to `episodes/<slug>/shorts_spec.py`, edit segments, headline (2 lines, 2nd line with a gold word), `tag`, and timed number cards (numbers from `model.json`; card in-times on the spoken word, in output seconds). `list=True` for a numbered checklist (5 rows).
+3. Run:
+```bash
+cd episodes/<slug> && python3 shorts_spec.py                     # -> shorts_spec.json
+node <skill>/scripts/shorts_overlays.mjs shorts_spec.json tmp/shorts_png
+python3 <skill>/scripts/shorts_build.py shorts_spec.json out/<final>.mp4 tmp/shorts_png out/shorts
+```
+4. Look at a 6-frame contact sheet of each Short (including the last 2 s) before delivering.
+
+Layout (fixed in the scripts; learned the hard way):
+- Headline top at y=120 (eyebrow `REAL NUMBERS · <tag>`, 84 px line + 90 px `nowrap` line). A longer 2nd line wrapped to 3 lines at 98 px; keep it ≤ about 20 Telugu characters.
+- 16:9 clip 1080×608 at **y=470** with gold rules above and below.
+- Number cards from **y=1120**, pitch **188 px** (cards are ~170 px tall; 160 px overlapped), list rows 120 px. Everything must end above **y≈1800**: YouTube's Shorts buttons and title cover the bottom, and the first layout (cards from 1250) clipped the last line.
+- Telugu never in the letter-spaced mono eyebrow font: wrap it in a `letter-spacing:0` Noto Sans Telugu span. No emoji (headless Chrome has no emoji font).
+- Audio: 60–80 ms fades at every join, 0.5 s fade-out at the end; the result measures −14 LUFS like the episode. The music bed can jump at joins; that is acceptable for Shorts.
 
 ---
 

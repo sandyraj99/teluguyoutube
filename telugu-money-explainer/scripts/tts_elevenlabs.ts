@@ -17,7 +17,7 @@ const vArg = args[args.indexOf("--voice") + 1];
 const voiceId = args.includes("--voice") ? (VOICES[vArg] ?? vArg) : VOICES.roger;
 const single = args.includes("--single");
 const KEY = process.env.ELEVENLABS_USER_KEY || process.env.ELEVENLABS_API_KEY;
-const MAX = 1400, TAKES = 4, PASS = 0.93, SEED = 4242;
+const MAX = 1400, TAKES = +(process.env.TAKES || 4), PASS = 0.93, SEED = 4242 + +(process.env.SEED_OFFSET || 0);
 const GAP_SCENE = 0.55, GAP_CHAPTER = 2.4, CHAPTER_SCENES = (process.env.CHAPTERS || "").split(","), LEAD = 0.4, TAIL = 2.5;
 
 const lines = await loadScript(ep);
