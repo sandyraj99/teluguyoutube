@@ -36,7 +36,7 @@ for c in ch:
     for k, id_ in enumerate(ids):
         if k < n: en = bounds[k][0] + 0.05; nxt = bounds[k][1] - 0.05
         else: en = t1; nxt = None
-        lines.append({"id": id_, "section": byid[id_]["section"], "text": byid[id_]["text"], "start": round(st, 3), "end": round(en, 3)})
+        lines.append({"id": id_, "section": byid[id_]["scene"], "text": byid[id_]["text"], "start": round(st, 3), "end": round(en, 3)})
         st = nxt if nxt is not None else st
 dur = float(subprocess.run(["ffprobe","-v","error","-show_entries","format=duration","-of","csv=p=0",f"{ep}/audio/voice.wav"],capture_output=True,text=True).stdout)
 json.dump({"duration": dur, "lines": lines}, open(f"{ep}/timeline.json","w"), ensure_ascii=False, indent=1)

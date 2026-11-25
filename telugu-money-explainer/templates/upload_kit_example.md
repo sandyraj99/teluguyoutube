@@ -50,7 +50,7 @@ wine shop business, wine shop lottery telangana, liquor shop licence telangana, 
 
 ## Pinned comment
 మీ ఊర్లో wine shop lottery కి ఎంత మంది apply చేశారు? 👇
-Next video ఏ business లెక్క చేయాలి? 1) Petrol bunk 2) Bar license 3) Biryani point
+(Photo, music and source credits: see description.)
 
 ## Disclaimer (paste at the end of the description)
 ⚠️ DISCLAIMER

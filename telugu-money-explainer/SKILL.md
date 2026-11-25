@@ -19,13 +19,20 @@ The single most important rule: **the video must feel made by a careful human ed
 ## 0. Quick start (read first)
 
 When the user says "new video", "next episode" or gives a topic:
-1. **Pitch 3 ideas** (section 2, step 1) and wait for a pick.
-2. **Research** with dated sources, then send the **Telugu script + research table** (section 3) and wait for "approved".
-3. After approval, **run the whole pipeline without more questions** (section 8): voice → alignment → footage → `plan_v2.py` → stills check → 100 s preview (send it) → full render → mix → `finish.sh`.
+1. **Pitch 3 ideas** (section 2, step 1) and wait for a pick. Ideas are **confidential** (section 0.1).
+2. **Research** with dated sources, write the script, run `python3 scripts/lint_script.py <ep>` until it shows **0 errors**, then send the **Telugu script + research table** (section 3) and wait for "approved".
+3. After approval, **run the whole pipeline without more questions** (section 8): lint → voice (primed + drift-checked) → word timeline → footage → `plan_v2.py` → stills check → full render → mix → `finish.sh`.
 4. **Deliver the upload kit** (section 10): final MP4, two thumbnails (A/B), title, full description with chapters, sources, credits and disclaimer, tags, pinned comment, upload settings.
 
 The approved look is the EP02 wine-shop episode: dark editorial graphics, no subtitles, no logo, count-up numbers (section 6). Use `templates/plan_example.py` + `templates/plan_example_rest.py` as the reference edit for a full 9-minute episode (copy them into the episode folder as `plan_v2.py` and `plan_v2_rest.py`; the first runs the second).
 Required keys: ElevenLabs and OpenAI via the Vibecode proxy (built in). For stock **video**, ask the user once for `PEXELS_API_KEY` / `PIXABAY_API_KEY` in the ENV tab; without them use Wikimedia Commons photos (`commons_fetch.py`) with Ken Burns moves.
+
+### 0.1 Topic secrecy (user rule)
+
+Other channels copy topics (EP03's tea-stall idea was published by a competitor within weeks). So:
+- **Never name or tease the next topic** inside a video, its description, title, pinned comment or end card. End with "కొత్త లెక్కతో మళ్ళీ కలుద్దాం" style lines instead.
+- No "vote for the next video" lists in pinned comments.
+- Idea pitches, research files and trend notes stay in the private chat/workspace. **Never commit them to the public GitHub repo** (`sandyraj99/teluguyoutube` is public).
 
 ---
 
@@ -109,13 +116,20 @@ Upload the final MP4, thumbnail and Shorts to storage, and give the user the ful
 | 4:30 to 6:00 | **The real count** | Totals, the twist (the cost nobody expects), profit per unit ("ఒక్కో plate మీద ₹X"). |
 | 6:00 to 7:30 | **The month** | Monthly profit, bad days, seasons (Karthika Masam, rain, exams), what changes in a smaller town. |
 | 7:30 to 9:00 | **Your version** | A low-investment or side-hustle version the viewer could actually run alongside a job. |
-| 9:00 to end | **Verdict + CTA** | Honest verdict, then one comment question ("మీ ఊర్లో ఒక plate ఎంత?" / "What's a plate in your town?"), then "next video" tease. |
+| 9:00 to end | **తీర్పు (verdict) + CTA** | Honest verdict in plain Telugu ("మొత్తానికి, మా లెక్క ప్రకారం…"), then one comment question ("మీ ఊర్లో ఒక ప్లేట్ ఎంత?"), then a sign-off that does **not** name the next topic ("ఇంకో కొత్త లెక్కతో మళ్ళీ కలుద్దాం"). |
 
 For a 60 to 90 second pilot, compress this to hook → sales → costs → twist → profit per unit → month → CTA.
 
 ### Writing rules
 
-- **Spoken Telugu, not textbook Telugu.** Write how a friend from Hyderabad talks. Mix in common English words. Avoid heavy Sanskritised words.
+- **Spoken Telugu, not textbook Telugu.** Write how a friend from Hyderabad talks. Avoid heavy Sanskritised words.
+- **Telugu first, English only when people really say it (EP03 lesson, user complaint at 7:40).** "సో, ఫైనల్ వెర్డిక్ట్", "మ్యాజిక్", "వాల్యూమ్ గేమ్", "సైలెంట్‌గా" made the narrator switch into an English YouTuber/announcer voice that sounded AI-made. Rules:
+  - Only everyday English nouns that a chai-stall owner uses (ప్లేట్, షాప్, యాప్, రెంట్, ఆర్డర్, బిజినెస్); **max 2 per sentence**.
+  - **No English connectors or hype words**: సో, అండ్, బట్, ఫైనల్, వెర్డిక్ట్, సింపుల్, ట్విస్ట్, షాకింగ్, మ్యాజిక్, ఈజీ మనీ, బేసిక్‌గా, ఓకే. Use అంటే, మొత్తానికి, ఇక, చివరికి, కానీ, అసలు విషయం, చాలా తేలిక, సరే.
+  - **The first sentence of every chapter must be plain Telugu with no English words.** Each chapter is a new voice generation, and its first words set the accent for the next 10 to 15 seconds.
+  - No Latin letters in narration (write ఎఫ్‌ఎస్‌ఎస్‌ఏఐ, not FSSAI).
+  - `scripts/lint_script.py` enforces all of this. It must show 0 errors before the script goes to the user, and warnings should be fixed unless the English word is truly unavoidable.
+- **Sound like a person talking, not reading**: use spoken connectors (మరి, చూడండి, అంటే, ఇక్కడే, ఒక్క నిమిషం), questions to the viewer, and natural sentence endings (…కదా?, …అంతే., …చూద్దాం.). Avoid written-style endings (…చేయబడును, …యొక్క).
 - **Short sentences.** One idea per sentence, 6 to 14 words. The narrator needs breathing points.
 - **Numbers in the narration are written as Telugu words** ("మూడు వేల ఎనభై ఒక్క రూపాయలు") so the voice reads them correctly. **On screen they appear as digits** (₹3,081).
 - **Round numbers when speaking** ("దాదాపు ఏడు వందల డెబ్బై" / "about seven hundred seventy"), but keep exact numbers on screen.
@@ -157,6 +171,12 @@ Save as `script.json`, one object per sentence (this drives alignment and graphi
 - Generate in **large chunks: one chunk per scene or section, 500 to 1,400 characters each** (eleven_v3 silently cut off a 1,600-character Telugu chunk mid-sentence in EP02; always check the end of each chunk is spoken), with the same voice and settings and a fixed `seed`.
 - Join chunks with a 0.35 to 0.6 second natural pause.
 - For a pilot of 90 seconds or less, use **one single request** for the whole script.
+- **Cold-start drift (EP03 lesson, the user heard it at 2:00):** a new chunk can start deeper and flatter for 5 to 15 s before it settles. Two fixes are built into `tts_elevenlabs.ts`:
+  1. **Priming:** every chunk after the first is generated with the last 2 sentences of the previous chunk in front of it; the primer is cut off at the first word of the chunk using ElevenLabs forced alignment.
+  2. **Start-drift check:** `voice_stats.py` measures the first 12 s of every chunk. Median pitch must be within 5% of the reference voice (chunk 1) and the pitch range at least 0.65× the reference; otherwise the chunk is regenerated. EP03's bad chunk started 8% low; the primed retake was 1.8% off.
+- **Write English loanwords in Telugu letters** (ప్లేట్, యాప్, కమిషన్). Mixing Latin and Telugu script makes the voice switch accent mid-sentence.
+- **Loudness-match every chunk to −18 LUFS** before joining (built in).
+- **Sentence timeline:** build it from forced-alignment word timings (token counts per sentence), not from silence detection; silence DP put several EP03 boundaries in the wrong place.
 
 ### 4.3 Verify pronunciation automatically
 
@@ -298,6 +318,9 @@ This replaces the old cream "sticker card" style. The user approved this look on
 
 ## 8. Render pipeline (commands)
 
+Before step 1 always: `python3 scripts/lint_script.py episodes/<slug>` (0 errors). Voice: `CHAPTERS=<comma-separated scene names that get a chapter card> bun scripts/tts_elevenlabs.ts episodes/<slug>` (priming + drift check are automatic; `--reuse` rejoins without regenerating). Timeline: `python3 scripts/timeline_from_words.py` (run inside the episode folder after `falign.ts`) instead of `align.py`. Stills: `node scripts/stills.mjs <ep> <outdir> <t1> <t2> ...`.
+
+
 Folder per episode: `episodes/<slug>/` containing `script.json`, `research.json`, `audio/`, `footage/`, `graphics/`, `out/`.
 
 ```bash
@@ -326,6 +349,8 @@ Paid API scripts run from `backend/` with `bun --env-file=.env` and import `@vib
 
 ## 9. Quality checklist (all must pass before delivery)
 
+- [ ] Script lint: 0 errors (no English announcer phrases, every chapter starts in plain Telugu, no next-topic tease).
+- [ ] Voice start check: every chunk's first 12 s within 5% pitch of chunk 1 and not flat (`chunks.json` → `voiceOk: true`). Also scan the joined voice in 5 s windows (`voice_stats.py`) and look for any window with pitch more than 8% below the episode median or pitch range under 55 Hz; regenerate that chunk.
 - [ ] Voice: one voice throughout; every chunk scores 0.93 or higher (or is checked number by number by hand) on transcription similarity; no clicks or long gaps at chunk joins.
 - [ ] Every number spoken matches the number on screen and in `research.json`; totals recomputed in code.
 - [ ] Sourced numbers show a source line; estimates show "అంచనా".
@@ -372,14 +397,14 @@ Look at frames yourself (extract stills with ffmpeg and view them) before saying
      - for money topics: "Not financial or investment advice"
    - 3 hashtags.
 5. **Tags:** 10 to 15, English and Telugu.
-6. **Pinned comment:** the CTA question, plus 3 "next video" options to vote on, plus full credit links.
+6. **Pinned comment:** the CTA question plus full credit links. **No list of upcoming topics** (section 0.1).
 7. **Upload settings to tell the user:**
    - Altered/synthetic content: **No** (only the voice is synthetic; no realistic fake people or events)
    - Made for kids: **No**
    - Age restriction: off, unless the video shows consumption
    - Category: Education
    - Add the chapters
-   - Use the end screen for the next video
+   - Use the end screen for the latest uploaded video (never a "coming next" topic card)
 8. **3 Shorts** (1080×1920, 30 to 50 s) when asked: the hook + twist, the profit reveal, and the "your version" tip. Use the same engine with a 1080×1920 viewport and the key numbers enlarged.
 
 ---
